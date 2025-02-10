@@ -12,5 +12,12 @@
     "circomlib": "^2.0.5",
     "circomlibjs": "^0.1.7",
     "snarkjs": "^0.7.5"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "chai": "^5.1.2",
+    "circom": "^0.5.46",
+    "circom_tester": "^0.0.20",
+    "hardhat": "^2.22.18"
   }
 }

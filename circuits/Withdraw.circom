@@ -1,3 +1,5 @@
+pragma circom 2.0.0;
+
 include "../node_modules/circomlib/circuits/bitify.circom";
 include "../node_modules/circomlib/circuits/pedersen.circom";
 include "MerkleTree.circom";
@@ -27,15 +29,16 @@ template CommitmentHasher() {
 
 // Verifies that commitment that corresponds to given secret and nullifier is included in the merkle tree of deposits
 template Withdraw(levels) {
+    // Public inputs
     signal input root;
     signal input nullifierHash;
     signal input recipient; // not taking part in any computations
-    signal input fee;      // not taking part in any computations
-    signal input refund;   // not taking part in any computations
-    signal private input nullifier;
-    signal private input secret;
-    signal private input pathElements[levels];
-    signal private input pathIndices[levels];
+
+    // Private inputs
+    signal input nullifier;
+    signal input secret;
+    signal input path_elements[levels];
+    signal input path_index[levels];
 
     component hasher = CommitmentHasher();
     hasher.nullifier <== nullifier;
@@ -44,21 +47,17 @@ template Withdraw(levels) {
 
     component tree = MerkleTreeInclusionProof(levels);
     tree.leaf <== hasher.commitment;
-    tree.root <== root;
     for (var i = 0; i < levels; i++) {
-        tree.pathElements[i] <== pathElements[i];
-        tree.pathIndices[i] <== pathIndices[i];
+        tree.path_elements[i] <== path_elements[i];
+        tree.path_index[i] <== path_index[i];
     }
+    tree.root === root;
 
     // Add hidden signals to make sure that tampering with recipient or fee will invalidate the snark proof
     // Most likely it is not required, but it's better to stay on the safe side and it only takes 2 constraints
     // Squares are used to prevent optimizer from removing those constraints
     signal recipientSquare;
-    signal feeSquare;
-    signal refundSquare;
     recipientSquare <== recipient * recipient;
-    feeSquare <== fee * fee;
-    refundSquare <== refund * refund;
 }
 
-component main = Withdraw(20);
+component main { public [root, nullifierHash, recipient] } = Withdraw(32);
