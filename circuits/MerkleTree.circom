@@ -4,7 +4,8 @@ include "../node_modules/circomlib/circuits/poseidon.circom";
 include "../node_modules/circomlib/circuits/comparators.circom";
 include "../node_modules/circomlib/circuits/switcher.circom"; 
 
-template MerkleTree(n) { // compute the root of a MerkleTree of n Levels 
+// compute the root of a MerkleTree of n Levels 
+template MerkleTree(n) { 
     signal input leaves[2**n];
     signal output root;
 
