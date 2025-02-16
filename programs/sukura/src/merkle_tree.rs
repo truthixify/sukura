@@ -1,5 +1,8 @@
+use anchor_lang::prelude::*;
 use anchor_lang::solana_program::poseidon::{hashv, Endianness, Parameters};
-use std::collections::VecDeque;
+use hex::FromHex;
+use num_bigint::BigUint;
+use num_traits::Num;
 
 const FIELD_SIZE: &str =
     "21888242871839275222246405745257275088548364400416034343698204186575808495617";
@@ -7,24 +10,29 @@ const ZERO_VALUE: &str =
     "21663839004416932945382355908790599225266501822907911457504978515578255421292";
 const ROOT_HISTORY_SIZE: usize = 30;
 
-#[derive(Debug, Clone)]
+#[derive(AnchorDeserialize, AnchorSerialize, Clone)]
 pub struct MerkleTreeWithHistory {
     levels: u32,
-    filled_subtrees: Vec<String>,
-    roots: VecDeque<String>,
-    current_root_index: usize,
+    filled_subtrees: Vec<[u8; 32]>,
+    roots: Vec<[u8; 32]>,
+    current_root_index: u64,
     next_index: u32,
 }
 
 impl MerkleTreeWithHistory {
     pub fn new(levels: u32) -> Self {
         assert!(levels > 0 && levels < 32, "Invalid tree depth");
-        let mut filled_subtrees = vec![ZERO_VALUE.to_string(); levels as usize];
+        let mut zero_value: [u8; 32] = [0u8; 32];
+        hex::decode_to_slice(ZERO_VALUE, &mut zero_value).unwrap();
+        let mut filled_subtrees = vec![zero_value; levels as usize];
+
         for i in 0..levels as usize {
-            filled_subtrees[i] = zeros(i as u32).to_string();
+            filled_subtrees[i] = zeros(i as u32);
         }
-        let mut roots = VecDeque::with_capacity(ROOT_HISTORY_SIZE);
-        roots.push_back(zeros(levels - 1).to_string());
+
+        let mut roots = Vec::with_capacity(ROOT_HISTORY_SIZE);
+        roots.push(zeros(levels - 1));
+
         Self {
             levels,
             filled_subtrees,
@@ -34,25 +42,23 @@ impl MerkleTreeWithHistory {
         }
     }
 
-    pub fn hash(left: String, right: String) -> String {
-        let mut left_in = [0u8; 32];
-        let mut right_in = [0u8; 32];
+    pub fn hash(left: [u8; 32], right: [u8; 32]) -> [u8; 32] {
+        let field_size = BigUint::from_str_radix(FIELD_SIZE, 10).unwrap();
+        let left_biguint = BigUint::from_bytes_be(&left);
+        let right_biguint = BigUint::from_bytes_be(&right);
 
-        hex::encode_to_slice(left, &mut left_in);
-        hex::encode_to_slice(right, &mut right_in);
+        assert!(left_biguint < field_size, "left should be inside the field");
+        assert!(
+            right_biguint < field_size,
+            "right should be inside the field"
+        );
 
-        let hash = hashv(
-            Parameters::Bn254X5,
-            Endianness::BigEndian,
-            &[&left_in, &right_in],
-        )
-        .unwrap();
-        let hash = hex::encode(hash.to_bytes());
-
-        hash
+        hashv(Parameters::Bn254X5, Endianness::BigEndian, &[&left, &right])
+            .unwrap()
+            .to_bytes()
     }
 
-    pub fn insert(&mut self, leaf: String) -> u32 {
+    pub fn insert(&mut self, leaf: [u8; 32]) -> u32 {
         assert!(
             self.next_index < (1u32 << self.levels),
             "Merkle tree is full"
@@ -62,37 +68,46 @@ impl MerkleTreeWithHistory {
         let mut current_level_hash = leaf;
 
         for i in 0..self.levels {
-            let zero_hash = zeros(i).to_string(); // Use precomputed zero values
+            let zero_hash = zeros(i); // Use precomputed zero values
             if current_index % 2 == 0 {
-                self.filled_subtrees[i as usize] = current_level_hash.clone();
+                self.filled_subtrees[i as usize] = current_level_hash;
                 current_level_hash = Self::hash(current_level_hash, zero_hash);
             } else {
                 current_level_hash =
-                    Self::hash(self.filled_subtrees[i as usize].clone(), current_level_hash);
+                    Self::hash(self.filled_subtrees[i as usize], current_level_hash);
             }
             current_index /= 2;
         }
 
         if self.roots.len() >= ROOT_HISTORY_SIZE {
-            self.roots.pop_front();
+            self.roots.remove(0);
         }
-        self.roots.push_back(current_level_hash);
-        self.current_root_index = self.roots.len() - 1;
+        self.roots.push(current_level_hash);
+        self.current_root_index = (self.roots.len() - 1) as u64;
         self.next_index += 1;
         self.next_index - 1
     }
 
-    pub fn is_known_root(&self, root: String) -> bool {
+    pub fn is_known_root(&self, root: [u8; 32]) -> bool {
         self.roots.contains(&root)
     }
 
-    pub fn get_last_root(&self) -> String {
-        self.roots.back().unwrap().to_string()
+    pub fn get_last_root(&self) -> [u8; 32] {
+        self.roots[self.current_root_index as usize]
     }
 }
 
-pub fn zeros(i: u32) -> &'static str {
-    match i {
+// #[derive(AnchorDeserialize, AnchorSerialize, Clone)]
+// pub struct MerkleRoot([u8; 32]);
+
+// #[derive(AnchorDeserialize, AnchorSerialize, Clone)]
+// pub struct Commitments(Vec<[u8; 32]>);
+
+// #[derive(AnchorDeserialize, AnchorSerialize, Clone)]
+// pub struct NullifierHashes(Vec<[u8; 32]>);
+
+pub fn zeros(i: u32) -> [u8; 32] {
+    let hex_str = match i {
         0 => "2fe54c60d3acabf3343a35b6eba15db4821b340f76e741e2249685ed4899af6c",
         1 => "256a6135777eee2fd26f54b8b7037a25439d5235caee224154186d2b8a52e31d",
         2 => "1151949895e82ab19924de92c40a3d6f7bcb60d92b00504b8199613683f0c200",
@@ -126,22 +141,22 @@ pub fn zeros(i: u32) -> &'static str {
         30 => "1f3c6fd858e9a7d4b0d1f38e256a09d81d5a5e3c963987e2d4b814cfab7c6ebb",
         31 => "2c7a07d20dff79d01fecedc1134284a8d08436606c93693b67e333f671bf69cc",
         _ => panic!("Index out of bounds"),
-    }
+    };
+
+    <[u8; 32]>::from_hex(hex_str).expect("Invalid hex string")
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::time::Instant;
 
     // Helper function to create a Merkle tree with some leaves
     fn setup_tree() -> MerkleTreeWithHistory {
-        let leaves = vec!["1", "2", "3", "4"];
         let mut tree = MerkleTreeWithHistory::new(4);
-        tree.insert(leaves[0].to_string());
-        tree.insert(leaves[1].to_string());
-        tree.insert(leaves[2].to_string());
-        tree.insert(leaves[3].to_string());
+        tree.insert([1u8; 32]);
+        tree.insert([2u8; 32]);
+        tree.insert([3u8; 32]);
+        tree.insert([4u8; 32]);
 
         tree
     }
@@ -155,8 +170,7 @@ mod tests {
         let expected_root = tree.get_last_root();
         let mut tree2 = MerkleTreeWithHistory::new(tree.levels);
         for i in 1..=4 {
-            println!("lol");
-            tree2.insert(i.to_string());
+            tree2.insert([i as u8; 32]);
         }
         assert_eq!(
             tree2.get_last_root(),
@@ -170,9 +184,13 @@ mod tests {
         let mut tree = setup_tree();
         let old_root = tree.get_last_root();
 
-        tree.insert("100".to_string());
+        tree.insert([
+            0x25, 0x6a, 0x61, 0x35, 0x77, 0x7e, 0xee, 0x2f, 0xd2, 0x6f, 0x54, 0xb8, 0xb7, 0x03,
+            0x7a, 0x25, 0x43, 0x9d, 0x52, 0x35, 0xca, 0xee, 0x22, 0x41, 0x54, 0x18, 0x6d, 0x2b,
+            0x8a, 0x52, 0xe3, 0x1d,
+        ]);
 
-        assert_eq!(
+        assert_ne!(
             tree.get_last_root(),
             old_root,
             "Root should change after updating a leaf"
@@ -191,7 +209,7 @@ mod tests {
             "Empty tree root should be zero"
         );
         assert!(
-            tree.is_known_root(zeros(0).to_string()),
+            tree.is_known_root(zeros(0)),
             "Empty tree should have known root"
         );
     }

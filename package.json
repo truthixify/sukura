@@ -8,13 +8,17 @@
   "dependencies": {
     "@coral-xyz/anchor": "^0.30.1",
     "circomlib": "^2.0.5",
+    "circomlibjs": "^0.1.7",
+    "crypto-js": "^4.2.0",
     "ffjavascript": "^0.3.1",
     "snarkjs": "^0.7.5"
   },
   "devDependencies": {
     "@types/bn.js": "^5.1.0",
     "@types/chai": "^4.3.0",
+    "@types/circomlibjs": "^0.1.6",
     "@types/mocha": "^9.0.0",
+    "@types/snarkjs": "^0.7.9",
     "chai": "^4.3.4",
     "mocha": "^9.0.3",
     "prettier": "^2.6.2",
