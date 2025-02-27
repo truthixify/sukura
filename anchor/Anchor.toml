@@ -6,7 +6,7 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-sukura = "coUnmi3oBUtwtd9fjeAvSsJssXh5A5xyPbhpewyzRVF"
+sukura = "BVenz5gRt75a9PLy39QSeX4WBQvPZH9eVtEaFG7Z53WT"
 
 [registry]
 url = "https://api.apr.dev"

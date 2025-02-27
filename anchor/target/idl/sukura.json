@@ -8,122 +8,260 @@
   },
   "instructions": [
     {
-      "name": "close",
+      "name": "deposit",
+      "docs": [
+        "Deposits a commitment into the Merkle Tree"
+      ],
       "discriminator": [
-        98,
-        165,
-        201,
-        177,
-        108,
-        65,
-        206,
-        96
+        242,
+        35,
+        198,
+        137,
+        82,
+        225,
+        242,
+        182
       ],
       "accounts": [
         {
-          "name": "payer",
+          "name": "pool",
+          "writable": true
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "relations": [
+            "pool"
+          ]
+        },
+        {
+          "name": "sender",
           "writable": true,
           "signer": true
         },
         {
-          "name": "sukura",
-          "writable": true
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "decrement",
-      "discriminator": [
-        106,
-        227,
-        168,
-        59,
-        248,
-        27,
-        150,
-        101
-      ],
-      "accounts": [
-        {
-          "name": "sukura",
-          "writable": true
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "increment",
-      "discriminator": [
-        11,
-        18,
-        104,
-        9,
-        104,
-        174,
-        59,
-        33
-      ],
-      "accounts": [
-        {
-          "name": "sukura",
-          "writable": true
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "initialize",
-      "discriminator": [
-        175,
-        175,
-        109,
-        31,
-        13,
-        152,
-        155,
-        237
-      ],
-      "accounts": [
-        {
-          "name": "payer",
-          "writable": true,
-          "signer": true
-        },
-        {
-          "name": "sukura",
-          "writable": true,
-          "signer": true
+          "name": "pool_signer",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "pool"
+              }
+            ]
+          }
         },
         {
           "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "commitment",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
     },
     {
-      "name": "set",
+      "name": "initialize_pool",
+      "docs": [
+        "Initializes the Sukura with default values"
+      ],
       "discriminator": [
-        198,
-        51,
-        53,
-        241,
-        116,
-        29,
-        126,
-        194
+        95,
+        180,
+        10,
+        172,
+        84,
+        174,
+        232,
+        40
       ],
       "accounts": [
         {
-          "name": "sukura",
-          "writable": true
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "pool",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "pool_signer",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "pool"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "pool"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
         {
-          "name": "value",
+          "name": "levels",
+          "type": "u32"
+        },
+        {
+          "name": "amount_per_withdrawal",
+          "type": "u64"
+        },
+        {
+          "name": "nonce",
           "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "is_spent",
+      "discriminator": [
+        222,
+        240,
+        83,
+        255,
+        100,
+        140,
+        41,
+        39
+      ],
+      "accounts": [
+        {
+          "name": "pool",
+          "writable": true
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "relations": [
+            "pool"
+          ]
+        },
+        {
+          "name": "recipient",
+          "writable": true
+        },
+        {
+          "name": "pool_signer",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "pool"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "nullifier_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ],
+      "returns": "bool"
+    },
+    {
+      "name": "withdraw",
+      "docs": [
+        "Withdraws funds by verifying the proof and nullifying the commitment"
+      ],
+      "discriminator": [
+        183,
+        18,
+        70,
+        156,
+        148,
+        109,
+        161,
+        34
+      ],
+      "accounts": [
+        {
+          "name": "pool",
+          "writable": true
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "relations": [
+            "pool"
+          ]
+        },
+        {
+          "name": "recipient",
+          "writable": true
+        },
+        {
+          "name": "pool_signer",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "pool"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "nullifier_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "root",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "proof_data",
+          "type": "bytes"
         }
       ]
     }
@@ -132,26 +270,226 @@
     {
       "name": "Sukura",
       "discriminator": [
-        255,
-        176,
-        4,
-        245,
-        188,
-        253,
-        124,
-        25
+        152,
+        58,
+        127,
+        89,
+        1,
+        6,
+        64,
+        208
       ]
     }
   ],
+  "events": [
+    {
+      "name": "DepositEvent",
+      "discriminator": [
+        120,
+        248,
+        61,
+        83,
+        31,
+        142,
+        107,
+        144
+      ]
+    },
+    {
+      "name": "WithdrawEvent",
+      "discriminator": [
+        22,
+        9,
+        133,
+        26,
+        160,
+        44,
+        71,
+        192
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "CommitmentAlreadyExists",
+      "msg": "Commitment already exists in the Merkle Tree"
+    },
+    {
+      "code": 6001,
+      "name": "NullifierAlreadyUsed",
+      "msg": "Nullifier has already been used"
+    },
+    {
+      "code": 6002,
+      "name": "RootNotFound",
+      "msg": "Root not found in the merkle tree"
+    },
+    {
+      "code": 6003,
+      "name": "InvalidProof",
+      "msg": "Invalid proof provided for withdrawal"
+    }
+  ],
   "types": [
+    {
+      "name": "DepositEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "commitment",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "leaf_index",
+            "type": "u32"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MerkleTreeWithHistory",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "levels",
+            "type": "u32"
+          },
+          {
+            "name": "filled_subtrees",
+            "type": {
+              "vec": {
+                "array": [
+                  "u8",
+                  32
+                ]
+              }
+            }
+          },
+          {
+            "name": "roots",
+            "type": {
+              "vec": {
+                "array": [
+                  "u8",
+                  32
+                ]
+              }
+            }
+          },
+          {
+            "name": "current_root_index",
+            "type": "u64"
+          },
+          {
+            "name": "next_index",
+            "type": "u32"
+          },
+          {
+            "name": "zeros",
+            "type": {
+              "vec": {
+                "array": [
+                  "u8",
+                  32
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
     {
       "name": "Sukura",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "count",
+            "name": "merkle_tree",
+            "type": {
+              "defined": {
+                "name": "MerkleTreeWithHistory"
+              }
+            }
+          },
+          {
+            "name": "merkle_root",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "commitments",
+            "type": {
+              "vec": {
+                "array": [
+                  "u8",
+                  32
+                ]
+              }
+            }
+          },
+          {
+            "name": "nullifiers_hashes",
+            "type": {
+              "vec": {
+                "array": [
+                  "u8",
+                  32
+                ]
+              }
+            }
+          },
+          {
+            "name": "amount_per_withdrawal",
+            "type": "u64"
+          },
+          {
+            "name": "nonce",
             "type": "u8"
+          },
+          {
+            "name": "vault",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "WithdrawEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "recipient",
+            "type": "pubkey"
+          },
+          {
+            "name": "nullifier_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "amount",
+            "type": "u64"
           }
         ]
       }

@@ -2,6 +2,7 @@
   "compilerOptions": {
     "lib": ["dom", "dom.iterable", "esnext"],
     "types": ["jest", "node"],
+    "target": "ES2020",
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -12,6 +13,7 @@
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "isolatedModules": true,
+    "moduleDetection": "force",
     "jsx": "preserve",
     "incremental": true,
     "plugins": [
