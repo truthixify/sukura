@@ -154,7 +154,7 @@ describe('Sukura', () => {
     let nonce = noncePda
     const authority = provider.wallet
 
-    const amountPerWithdrawal = new BN(1_000_000) // 1 SOL
+    const amountPerWithdrawal = new BN(1_000_000_000) // 1 SOL
     const computeUnitsIx = anchor.web3.ComputeBudgetProgram.setComputeUnitLimit({
         units: 500_000,
     })
