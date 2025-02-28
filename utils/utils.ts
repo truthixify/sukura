@@ -3,8 +3,8 @@ import { CircuitSignals, groth16, ZKArtifact } from 'snarkjs'
 import { buildPedersenHash, buildPoseidon, buildBabyjub, BigNumberish } from 'circomlibjs'
 import * as crypto from 'crypto'
 import { ZqField, Scalar, utils } from 'ffjavascript'
-import * as path from 'path'
-import * as fs from 'fs'
+// import * as path from 'path'
+// import * as fs from 'fs'
 import { BN } from 'bn.js'
 const unstringifyBigInts = utils.unstringifyBigInts
 const stringifyBigInts = utils.stringifyBigInts
@@ -104,11 +104,9 @@ export const generateDeposit = async () => {
 }
 
 export const snarkVerify = async (proofData: ProofData): Promise<boolean> => {
-    const vkeyPath = path.join(__dirname, '../circuits/build/verification_key.json')
+    const vkeyResponse = await fetch('/verification_key.json')
 
-    const vkeyBuffer = fs.readFileSync(vkeyPath, 'utf-8')
-
-    const vkey = JSON.parse(vkeyBuffer)
+    const vkey = await vkeyResponse.json()
 
     const { proof, publicSignals } = proofData
 
@@ -120,16 +118,8 @@ export const snarkVerify = async (proofData: ProofData): Promise<boolean> => {
 export const generateWitnessAndProve = async (
     input: CircuitSignals
 ): Promise<{ proof: any; publicSignals: any }> => {
-    // const wasmPath = path.join(__dirname, '../anchor/circuits/build/sukura_js/sukura.wasm')
-    // const zkeyPath = path.join(__dirname, '../anchor/circuits/build/sukura.zkey')
-
-    // const wasmBuffer = fs.readFileSync(wasmPath)
-    // const zkeyBuffer = fs.readFileSync(zkeyPath)
-
-    // const wasm = new Uint8Array(wasmBuffer)
-    // const zkey = new Uint8Array(zkeyBuffer)
-    const wR = await fetch('http://localhost:5173/sukura.wasm')
-    const zR = await fetch('http://localhost:5173/sukura.zkey')
+    const wR = await fetch('/sukura.wasm')
+    const zR = await fetch('/sukura.zkey')
 
     const wB = await wR.arrayBuffer()
     const zB = await zR.arrayBuffer()
@@ -206,7 +196,7 @@ export function parseProofToBytesArray(proof: any, compressed = true) {
         }
 
         return [...proof.proofA, ...proof.proofB, ...proof.proofC]
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error while parsing the proof.', error.message)
         throw error
     }
@@ -223,7 +213,7 @@ export function parseToBytesArray(publicSignals: { [x: string]: any }) {
         }
 
         return publicInputsBytes
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error while parsing public inputs.', error.message)
         throw error
     }

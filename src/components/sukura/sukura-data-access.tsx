@@ -1,3 +1,5 @@
+'use client'
+
 import { getSukuraProgram, getSukuraProgramId } from '@project/anchor'
 import { useConnection } from '@solana/wallet-adapter-react'
 import {

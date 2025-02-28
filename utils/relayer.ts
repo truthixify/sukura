@@ -12,7 +12,6 @@ export const getOrCreateRelayerWallet = async () => {
 
         return wallet
     } catch (err) {
-        console.log(err)
         throw new Error(err as string)
     }
 }
@@ -26,7 +25,6 @@ export const signTransactinWithRelayer = async (encodedTransaction: string) => {
 
         return signature
     } catch (err) {
-        console.log(err)
         throw new Error(err as string)
     }
 }

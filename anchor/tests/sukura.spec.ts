@@ -120,7 +120,9 @@ const snarkVerify = async (proofData: ProofData): Promise<boolean> => {
     return result
 }
 
-const generateWitnessAndProve = async (input: CircuitSignals): Promise<{ proof: any; publicSignals: any }> => {
+const generateWitnessAndProve = async (
+    input: CircuitSignals
+): Promise<{ proof: any; publicSignals: any }> => {
     const wasmPath = path.join(__dirname, '../circuits/build/sukura_js/sukura.wasm')
     const zkeyPath = path.join(__dirname, '../circuits/build/sukura.zkey')
 

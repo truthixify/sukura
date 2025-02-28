@@ -24,6 +24,7 @@
     "@tabler/icons-react": "^3.11.0",
     "@tanstack/react-query": "^5.51.11",
     "@tanstack/react-query-next-experimental": "^5.51.11",
+    "@types/snarkjs": "^0.7.9",
     "chai": "^5.2.0",
     "circomlib": "^2.0.5",
     "circomlibjs": "^0.1.7",
@@ -33,6 +34,7 @@
     "ffjavascript": "^0.3.1",
     "fixed-merkle-tree": "^0.7.3",
     "jotai": "^2.9.1",
+    "mongoose": "^8.11.0",
     "next": "14.2.5",
     "react": "^18",
     "react-dom": "^18",
@@ -40,10 +42,11 @@
     "snarkjs": "^0.7.5"
   },
   "devDependencies": {
+    "@babel/preset-typescript": "^7.26.0",
     "@types/bn.js": "^5.1.0",
     "@types/chai": "^4.3.0",
     "@types/circomlibjs": "^0.1.6",
-    "@types/jest": "^29.0.3",
+    "@types/jest": "^29.5.14",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
@@ -52,7 +55,7 @@
     "jest": "^29.0.3",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
-    "ts-jest": "^29.0.2",
+    "ts-jest": "^29.2.6",
     "typescript": "^5"
   }
 }

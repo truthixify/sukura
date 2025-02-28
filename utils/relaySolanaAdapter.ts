@@ -90,9 +90,8 @@ export const adaptSolanaWallet = (
             // Solana doesn't have a concept of replaced transactions
             // So we don't need to handle onReplaced and onCancelled
 
-            const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash(
-                'confirmed'
-            )
+            const { blockhash, lastValidBlockHeight } =
+                await connection.getLatestBlockhash('confirmed')
 
             const result = await connection.confirmTransaction({
                 blockhash: blockhash,

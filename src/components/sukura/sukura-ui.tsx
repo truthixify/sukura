@@ -1,3 +1,5 @@
+'use client'
+
 import { PublicKey } from '@solana/web3.js'
 import { useMemo } from 'react'
 import { ExplorerLink } from '../cluster/cluster-ui'

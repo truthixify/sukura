@@ -5,11 +5,11 @@ import { ReactQueryStreamedHydration } from '@tanstack/react-query-next-experime
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
 
 export function ReactQueryProvider({ children }: { children: ReactNode }) {
-  const [client] = useState(new QueryClient())
+    const [client] = useState(new QueryClient())
 
-  return (
-    <QueryClientProvider client={client}>
-      <ReactQueryStreamedHydration>{children}</ReactQueryStreamedHydration>
-    </QueryClientProvider>
-  )
+    return (
+        <QueryClientProvider client={client}>
+            <ReactQueryStreamedHydration>{children}</ReactQueryStreamedHydration>
+        </QueryClientProvider>
+    )
 }
