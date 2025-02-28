@@ -1,5 +1,5 @@
-import MerkleTree from 'fixed-merkle-tree'
-import MerkleTreeModel from '../model'
+import FixedMerkleTree from 'fixed-merkle-tree'
+import MerkleTree from '../model'
 
 export async function GET(req: Request) {
     try {
@@ -14,13 +14,13 @@ export async function GET(req: Request) {
             return Response.json({ error: 'index is required' }, { status: 400 })
         }
 
-        const treeData = await MerkleTreeModel.findOne({ poolAddress })
+        const treeData = await MerkleTree.findOne({ poolAddress })
 
         if (!treeData) {
             return Response.json({ error: 'Merkle tree not found' }, { status: 404 })
         }
 
-        const tree = MerkleTree.deserialize(treeData.tree)
+        const tree = FixedMerkleTree.deserialize(treeData.tree)
         const { pathElements, pathIndices } = tree.path(leafIndex)
 
         return Response.json({ pathElements, pathIndices })

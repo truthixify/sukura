@@ -86,8 +86,8 @@ export const generateDeposit = async () => {
     let deposit = {
         secret: random_bigint(31),
         nullifier: random_bigint(31),
-        commitment: uint8ArrayToBigInt(new Uint8Array(32)),
-        nullifierHash: uint8ArrayToBigInt(new Uint8Array(32)),
+        commitment: new BN(0),
+        nullifierHash: new BN(0),
     }
 
     const preimage = Buffer.concat([
@@ -243,4 +243,70 @@ function addBitmaskToByte(byte: number, yIsPositive: boolean) {
     } else {
         return byte
     }
+}
+
+function trunc(input: string, len = 7): string {
+    return input.slice(0, len) + input.slice(input.length - len)
+}
+
+export interface NoteData {
+    index: number
+    secret: string
+    nullifier: string
+    nullifierHash: string
+}
+
+export const handleNoteDownload = (
+    index: number,
+    secret: string,
+    nullifier: string,
+    nullifierHash: string
+) => {
+    const data = {
+        index,
+        secret,
+        nullifier,
+        nullifierHash,
+    }
+
+    // Convert data to JSON string
+    const jsonData = JSON.stringify(data, null, 2)
+
+    // Create a Blob with JSON data
+    const blob = new Blob([jsonData], { type: 'application/json' })
+
+    // Create a download link
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `sukura-${nullifierHash}.json` // Filename for download
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+}
+
+export const handleNoteUpload = (file: File): Promise<NoteData> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => {
+            try {
+                const data: NoteData = JSON.parse(reader.result as string)
+                resolve({
+                    index: data.index,
+                    secret: data.secret,
+                    nullifier: data.nullifier,
+                    nullifierHash: data.nullifierHash,
+                })
+            } catch (error) {
+                console.error('Error while parsing the file.', error)
+                reject(error)
+            }
+        }
+        reader.onerror = (error) => {
+            console.error('Error while reading the file.', error)
+            reject(error)
+        }
+        reader.readAsText(file)
+    })
 }

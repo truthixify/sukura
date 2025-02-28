@@ -16,7 +16,7 @@ export async function connectDB() {
 
     try {
         await mongoose.connect(MONGO_URI as string, {
-            dbName: 'merkle_tree',
+            dbName: 'sukura',
             bufferCommands: false,
         })
 

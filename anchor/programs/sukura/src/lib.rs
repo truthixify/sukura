@@ -5,7 +5,7 @@ use anchor_lang::prelude::*;
 use merkle_tree::MerkleTreeWithHistory;
 use verifier::verify_proof;
 
-declare_id!("BVenz5gRt75a9PLy39QSeX4WBQvPZH9eVtEaFG7Z53WT");
+declare_id!("7g6rj2p3kSAA3oyoAgsZQ8z9aB2YGJZ5t1nu5duwrjev");
 
 #[program]
 pub mod sukura {

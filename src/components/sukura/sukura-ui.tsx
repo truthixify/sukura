@@ -1,10 +1,11 @@
 'use client'
 
 import { PublicKey } from '@solana/web3.js'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { ExplorerLink } from '../cluster/cluster-ui'
 import { ellipsify } from '../ui/ui-layout'
 import { useSukuraProgram, useSukuraProgramAccount } from './sukura-data-access'
+import { handleNoteUpload, NoteData } from 'utils/utils'
 
 export function SukuraCreate() {
     const { initialize } = useSukuraProgram()
@@ -67,6 +68,37 @@ function SukuraCard({ account }: { account: PublicKey }) {
         [accountQuery.data?.amountPerWithdrawal]
     )
 
+    const [selectedFile, setSelectedFile] = useState<File | null>(null)
+    const [noteData, setNoteData] = useState<NoteData | null>(null)
+
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        console.log(event.target.files)
+        console.log('hi')
+        if (event.target.files && event.target.files.length > 0) {
+            const file = event.target.files[0]
+            setSelectedFile(file)
+
+            try {
+                const parsedData = await handleNoteUpload(file)
+                setNoteData(parsedData) // Store parsed data in state
+            } catch (error) {
+                console.error('Invalid file format', error)
+                alert('Invalid file format. Please upload a valid JSON file.')
+            }
+        }
+    }
+
+    const handleWithdraw = async () => {
+        if (!noteData) {
+            console.log(noteData)
+            alert('Please upload a valid note file first.')
+            return
+        }
+        // console.log(noteData)
+
+        await withdrawMutation.mutateAsync(noteData)
+    }
+
     return accountQuery.isLoading ? (
         <span className="loading loading-spinner loading-lg"></span>
     ) : (
@@ -110,10 +142,11 @@ function SukuraCard({ account }: { account: PublicKey }) {
                             {amount.toString()}
                         </h2>
                         <div className="card-actions justify-around">
+                            <input type="file" onChange={handleFileChange} className="file-input" />
                             <button
                                 className="btn btn-xs lg:btn-md btn-outline"
-                                onClick={() => withdrawMutation.mutateAsync()}
-                                disabled={withdrawMutation?.isPending}
+                                onClick={handleWithdraw}
+                                disabled={withdrawMutation?.isPending || !noteData}
                             >
                                 Withdraw
                             </button>

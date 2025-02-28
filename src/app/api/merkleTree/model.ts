@@ -1,14 +1,32 @@
 import { SerializedTreeState } from 'fixed-merkle-tree'
-import { Schema, Document, model } from 'mongoose'
+import { Schema, Document, model, models } from 'mongoose'
 
 export interface IMerkleTree extends Document {
     tree: SerializedTreeState
     poolAddress: string
+    vaultAddress: string
+    amountPerWithdrawal: number
 }
 
 const MerkleTreeSchema: Schema = new Schema({
-    tree: { type: Object, required: true },
-    poolAddress: { type: String, required: true },
+    tree: {
+        type: Schema.Types.Mixed,
+        required: true,
+    },
+    poolAddress: {
+        type: String,
+        required: true,
+    },
+    vaultAddress: {
+        type: String,
+        required: true,
+    },
+    amountPerWithdrawal: {
+        type: Number,
+        required: true,
+    },
 })
 
-export default model<IMerkleTree>('MerkleTree', MerkleTreeSchema)
+const MerkleTree = models.MerkleTree || model<IMerkleTree>('MerkleTree', MerkleTreeSchema)
+
+export default MerkleTree
