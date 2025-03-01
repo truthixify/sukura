@@ -5,19 +5,14 @@ import { useMemo, useState } from 'react'
 import { ExplorerLink } from '../cluster/cluster-ui'
 import { ellipsify } from '../ui/ui-layout'
 import { useSukuraProgram, useSukuraProgramAccount } from './admin-data-access'
-import { ProgramAccount } from '@coral-xyz/anchor'
 import { uint8ArrayToBigInt } from 'utils/utils'
 import { BN } from 'bn.js'
 
-const poolAmountList = [0.1, 1, 10, 100]
+export const poolAmountList = [0.1, 1, 10, 100]
 
 export function SukuraPoolCreate() {
     const { initializePool } = useSukuraProgram()
     const [amountPerWithdrawal, setAmountPerWithdrawal] = useState<number | null>(null)
-
-    const handleAmountPerWithdrawalBtn = (amount: number) => {
-        setAmountPerWithdrawal(amount)
-    }
 
     return (
         <div className="card-actions flex-col justify-evenly items-center">
@@ -25,15 +20,16 @@ export function SukuraPoolCreate() {
                 {poolAmountList.map((amount) => (
                     <button
                         key={amount}
-                        className={`btn btn-xs lg:btn-md ${amountPerWithdrawal === amount ? 'btn-success' : 'btn-dark'}`}
-                        onClick={() => handleAmountPerWithdrawalBtn(amount)}
+                        aria-label="Radio"
+                        className={`btn btn-xs lg:btn-md ${amountPerWithdrawal === amount ? 'btn-success' : 'btn-neutral'}`}
+                        onClick={() => setAmountPerWithdrawal(amount)}
                     >
                         {amount} SOL
                     </button>
                 ))}
             </div>
             <button
-                className="btn btn-lg lg:btn-md btn-primary"
+                className="btn btn-small lg:btn-md btn-primary"
                 onClick={() => initializePool.mutateAsync(amountPerWithdrawal)}
                 disabled={initializePool.isPending || !amountPerWithdrawal}
             >

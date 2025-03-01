@@ -4,7 +4,6 @@ import { getSukuraProgram, getSukuraProgramId } from '@project/anchor'
 import { useConnection } from '@solana/wallet-adapter-react'
 import {
     Cluster,
-    Keypair,
     PublicKey,
     SystemProgram,
     TransactionMessage,
@@ -24,9 +23,7 @@ import {
     parseProofToBytesArray,
     parseToBytesArray,
     solanaAddressToBigInt,
-    uint8ArrayToBigInt,
     handleNoteDownload,
-    handleNoteUpload,
     NoteData,
     createPoseidonHash,
 } from '../../../utils/utils'
@@ -57,65 +54,11 @@ export function useSukuraProgram() {
         queryFn: () => connection.getParsedAccountInfo(programId),
     })
 
-    const initialize = useMutation({
-        mutationKey: ['sukura', 'initialize', { cluster }],
-        mutationFn: async () => {
-            let pool = Keypair.generate()
-            const [vault, nonce] = PublicKey.findProgramAddressSync(
-                [pool.publicKey.toBuffer()],
-                programId
-            )
-
-            const txIns = await program.methods
-                .initializePool(levels, amountPerWithdrawal, nonce)
-                .accounts({
-                    pool: pool.publicKey,
-                    authority: provider.publicKey,
-                })
-                .instruction()
-            const { blockhash } = await connection.getLatestBlockhash()
-            const computeUnitsIx = await getComputeUnitsIx(
-                connection,
-                [txIns],
-                provider.wallet.publicKey
-            )
-            const messageV0 = new TransactionMessage({
-                payerKey: provider.wallet.publicKey,
-                recentBlockhash: blockhash,
-                instructions: [computeUnitsIx, txIns],
-            }).compileToV0Message()
-            const tx = new VersionedTransaction(messageV0)
-            tx.sign([pool])
-            const signature = await provider.sendAndConfirm(tx)
-
-            await fetch('/api/merkleTree', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    poolAddress: pool.publicKey.toString(),
-                    levels: 28,
-                    amountPerWithdrawal: amountPerWithdrawal.toNumber(),
-                    vaultAddress: vault.toString(),
-                }),
-            })
-
-            return signature
-        },
-        onSuccess: (signature) => {
-            transactionToast(signature)
-            return accounts.refetch()
-        },
-        onError: () => toast.error('Failed to initialize account'),
-    })
-
     return {
         program,
         programId,
         accounts,
         getProgramAccount,
-        initialize,
     }
 }
 

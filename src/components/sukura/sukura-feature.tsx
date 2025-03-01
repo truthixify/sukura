@@ -5,23 +5,15 @@ import { ExplorerLink } from '../cluster/cluster-ui'
 import { WalletButton } from '../solana/solana-provider'
 import { AppHero, ellipsify } from '../ui/ui-layout'
 import { useSukuraProgram } from './sukura-data-access'
-import { SukuraCreate, SukuraList } from './sukura-ui'
+import { SukuraUi } from './sukura-ui'
+
 export default function SukuraFeature() {
     const { publicKey } = useWallet()
-    const { programId } = useSukuraProgram()
 
     return publicKey ? (
         <div>
-            <AppHero title="Sukura" subtitle={''}>
-                <p className="mb-6">
-                    <ExplorerLink
-                        path={`account/${programId}`}
-                        label={ellipsify(programId.toString())}
-                    />
-                </p>
-                <SukuraCreate />
-            </AppHero>
-            <SukuraList />
+            <AppHero title="Sukura" subtitle={''}></AppHero>
+            <SukuraUi />
         </div>
     ) : (
         <div className="max-w-4xl mx-auto">

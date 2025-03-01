@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/sukura.json`.
  */
 export type Sukura = {
-    address: '7g6rj2p3kSAA3oyoAgsZQ8z9aB2YGJZ5t1nu5duwrjev'
+    address: 'ekKv4bjoUAiCDu5FmxHs3RjFJKnZafiVzR3VjPCY8u2'
     metadata: {
         name: 'sukura'
         version: '0.1.0'

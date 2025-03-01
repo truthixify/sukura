@@ -6,7 +6,7 @@ resolution = true
 skip-lint = false
 
 [programs.devnet]
-sukura = "7g6rj2p3kSAA3oyoAgsZQ8z9aB2YGJZ5t1nu5duwrjev"
+sukura = "ekKv4bjoUAiCDu5FmxHs3RjFJKnZafiVzR3VjPCY8u2"
 
 [registry]
 url = "https://api.apr.dev"
