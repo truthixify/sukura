@@ -1,3 +1,5 @@
+#![allow(unexpected_cfgs)]
+
 pub mod errors;
 pub mod events;
 pub mod instructions;
@@ -18,7 +20,6 @@ declare_id!("7g6rj2p3kSAA3oyoAgsZQ8z9aB2YGJZ5t1nu5duwrjev");
 pub mod sukura {
     use super::*;
 
-    /// Initializes the Sukura with default values
     pub fn initialize_pool(
         ctx: Context<InitializePool>,
         levels: u32,
