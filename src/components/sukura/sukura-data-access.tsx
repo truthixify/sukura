@@ -37,7 +37,7 @@ import { IMerkleTree } from '@/app/api/merkleTree/model'
 
 const levels = 28
 const amountPerWithdrawal = new BN(1_000_000)
-const fee = BigInt(amountPerWithdrawal.toNumber() * 0.01)
+const fee = BigInt(amountPerWithdrawal.toNumber() * 0.01).toString()
 const createPoseidonHash = async () => {
     const poseidon = await buildPoseidon()
     return (a: any, b: any) => poseidon.F.toString(poseidon([a, b]))
@@ -163,6 +163,7 @@ export function useSukuraProgramAccount({ account }: { account: PublicKey }) {
         mutationFn: async () => {
             let deposit = await generateDeposit()
             const commitment = Array.from(bigintToUint8Array(BigInt(deposit.commitment.toString())))
+            console.log(deposit.commitment.toString())
             const nullifier = deposit.nullifier.toString()
             const secret = deposit.secret.toString()
             const nullifierHash = deposit.nullifierHash.toString()
@@ -177,9 +178,10 @@ export function useSukuraProgramAccount({ account }: { account: PublicKey }) {
                     element: deposit.commitment.toString(),
                 }),
             })
-            const treeData: IMerkleTree = (await response.json()).treeData
-            const { tree, vaultAddress } = treeData
-            const deTree = MerkleTree.deserialize(tree)
+            const treeData = await response.json()
+            const { tree, vaultAddress } = treeData.newTreeData
+            const poseidonHash = await createPoseidonHash()
+            const deTree = MerkleTree.deserialize(tree, poseidonHash)
             const index = deTree.indexOf(deposit.commitment.toString())
 
             const txIns = await program.methods
@@ -220,27 +222,21 @@ export function useSukuraProgramAccount({ account }: { account: PublicKey }) {
     const withdrawMutation = useMutation({
         mutationKey: ['sukura', 'withdraw', { cluster, account }],
         mutationFn: async (data: NoteData) => {
-            let response = await fetch('/api/merkleTree', {
-                method: 'PUT',
+            const response = await fetch(`/api/merkleTree/${account.toString()}`, {
+                method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    poolAddress: account.toString(),
-                    element: deposit.commitment.toString(),
-                }),
             })
             const treeData: IMerkleTree = (await response.json()).treeData
             const { tree, vaultAddress } = treeData
-            const deTree = MerkleTree.deserialize(tree)
-
+            const poseidonHash = await createPoseidonHash()
+            const deTree = MerkleTree.deserialize(tree, poseidonHash)
             const { index, secret, nullifier, nullifierHash } = data
-
             const recipient = new PublicKey('CU49N3WyQAr9bPmqWvstkWu2gY7wmAHYkSjBbiDQtQQq')
             const relayerWallet = (await getOrCreateRelayerWallet()) as string
 
             const { pathElements, pathIndices } = deTree.path(index)
-
             const input = {
                 root: deTree.root,
                 nullifierHash: nullifierHash,

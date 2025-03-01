@@ -72,8 +72,6 @@ function SukuraCard({ account }: { account: PublicKey }) {
     const [noteData, setNoteData] = useState<NoteData | null>(null)
 
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        console.log(event.target.files)
-        console.log('hi')
         if (event.target.files && event.target.files.length > 0) {
             const file = event.target.files[0]
             setSelectedFile(file)
@@ -94,7 +92,6 @@ function SukuraCard({ account }: { account: PublicKey }) {
             alert('Please upload a valid note file first.')
             return
         }
-        // console.log(noteData)
 
         await withdrawMutation.mutateAsync(noteData)
     }

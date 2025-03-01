@@ -1,26 +1,6 @@
 import FixedMerkleTree from 'fixed-merkle-tree'
 import MerkleTree from './model'
-import { buildPoseidon } from 'circomlibjs'
-
-const createPoseidonHash = async () => {
-    const poseidon = await buildPoseidon()
-    return (a: any, b: any) => poseidon.F.toString(poseidon([a, b]))
-}
-
-export async function GET(req: Request) {
-    try {
-        const { poolAddress } = await req.json()
-        const treeData = await MerkleTree.findOne({ poolAddress }).select('-_id -__v').exec()
-
-        if (!treeData) {
-            return Response.json({ error: 'Merkle tree not found' }, { status: 404 })
-        }
-
-        return Response.json({ treeData })
-    } catch (err) {
-        return Response.json({ err }, { status: 500 })
-    }
-}
+import { createPoseidonHash } from '../../../../utils/utils'
 
 export async function POST(req: Request) {
     try {
@@ -70,19 +50,25 @@ export async function PUT(req: Request) {
             return Response.json({ error: 'element is required' }, { status: 400 })
         }
 
-        const treeData = await MerkleTree.findOne({ poolAddress })
+        let prevTreeData = await MerkleTree.findOne({ poolAddress })
 
-        if (!treeData) {
+        if (!prevTreeData) {
             return Response.json({ error: 'Merkle tree not found' }, { status: 404 })
         }
 
-        const tree = FixedMerkleTree.deserialize(treeData.tree)
+        const poseidonHash = await createPoseidonHash()
+        const tree = FixedMerkleTree.deserialize(prevTreeData.tree, poseidonHash)
         tree.insert(element)
-        treeData.tree = tree
-        await treeData.save()
+        const newTreeData = await MerkleTree.findByIdAndUpdate(
+            prevTreeData._id,
+            { tree: tree.serialize() },
+            { new: true }
+        )
+        await newTreeData.save()
 
-        return Response.json({ treeData })
+        return Response.json({ newTreeData })
     } catch (err) {
+        console.log(err)
         return Response.json({ err }, { status: 500 })
     }
 }
