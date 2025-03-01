@@ -1,5 +1,5 @@
-import DashboardFeature from '@/components/dashboard/dashboard-feature'
+import SukuraFeature from '@/components/sukura/sukura-feature'
 
 export default function Page() {
-    return <DashboardFeature />
+    return <SukuraFeature />
 }

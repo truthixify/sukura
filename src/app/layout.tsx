@@ -14,6 +14,7 @@ const links: { label: string; path: string }[] = [
     { label: 'Account', path: '/account' },
     { label: 'Clusters', path: '/clusters' },
     { label: 'Sukura Program', path: '/sukura' },
+    { label: 'Admin Dashboard', path: '/admin' },
 ]
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
