@@ -209,6 +209,10 @@ export type Sukura = {
                     name: 'proofData'
                     type: 'bytes'
                 },
+                {
+                    name: 'fee'
+                    type: 'u64'
+                },
             ]
         },
     ]

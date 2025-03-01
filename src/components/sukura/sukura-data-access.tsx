@@ -28,9 +28,9 @@ import {
     handleNoteDownload,
     handleNoteUpload,
     NoteData,
+    createPoseidonHash,
 } from '../../../utils/utils'
 import MerkleTree from 'fixed-merkle-tree'
-import { buildPoseidon } from 'circomlibjs'
 import { getOrCreateRelayerWallet, signTransactinWithRelayer } from '../../../utils/relayer'
 import { getComputeUnitsIx } from '../../utils/computeUnit'
 import { IMerkleTree } from '@/app/api/merkleTree/model'
@@ -38,33 +38,6 @@ import { IMerkleTree } from '@/app/api/merkleTree/model'
 const levels = 28
 const amountPerWithdrawal = new BN(1_000_000)
 const fee = BigInt(amountPerWithdrawal.toNumber() * 0.01).toString()
-const createPoseidonHash = async () => {
-    const poseidon = await buildPoseidon()
-    return (a: any, b: any) => poseidon.F.toString(poseidon([a, b]))
-}
-let tree: any
-createPoseidonHash()
-    .then((res) => {
-        tree = new MerkleTree(levels, [], { hashFunction: res })
-    })
-    .catch((err) => console.log(err))
-
-let deposit = {
-    commitment: '',
-    nullifier: '',
-    secret: '',
-    nullifierHash: '',
-}
-let commitment: any
-generateDeposit()
-    .then((res) => {
-        commitment = Array.from(bigintToUint8Array(BigInt(res.commitment.toString())))
-        deposit.nullifier = res.nullifier.toString()
-        deposit.secret = res.secret.toString()
-        deposit.nullifierHash = res.nullifierHash.toString()
-        deposit.commitment = res.commitment.toString()
-    })
-    .catch((err) => console.log(err))
 
 export function useSukuraProgram() {
     const { connection } = useConnection()
@@ -163,35 +136,15 @@ export function useSukuraProgramAccount({ account }: { account: PublicKey }) {
         mutationFn: async () => {
             let deposit = await generateDeposit()
             const commitment = Array.from(bigintToUint8Array(BigInt(deposit.commitment.toString())))
-            console.log(deposit.commitment.toString())
             const nullifier = deposit.nullifier.toString()
             const secret = deposit.secret.toString()
             const nullifierHash = deposit.nullifierHash.toString()
 
-            let response = await fetch('/api/merkleTree', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    poolAddress: account.toString(),
-                    element: deposit.commitment.toString(),
-                }),
-            })
-            const treeData = await response.json()
-            const { tree, vaultAddress } = treeData.newTreeData
-            const poseidonHash = await createPoseidonHash()
-            const deTree = MerkleTree.deserialize(tree, poseidonHash)
-            const index = deTree.indexOf(deposit.commitment.toString())
-
             const txIns = await program.methods
                 .deposit(commitment)
-                .accountsStrict({
+                .accounts({
                     pool: account,
                     sender: provider.publicKey,
-                    vault: new PublicKey(vaultAddress),
-                    poolSigner: new PublicKey(vaultAddress),
-                    systemProgram: SystemProgram.programId,
                 })
                 .instruction()
             const { blockhash } = await connection.getLatestBlockhash()
@@ -206,11 +159,23 @@ export function useSukuraProgramAccount({ account }: { account: PublicKey }) {
                 instructions: [computeUnitsIx, txIns],
             }).compileToV0Message()
             const tx = new VersionedTransaction(messageV0)
-            const txId = await provider.sendAndConfirm(tx)
+            const signature = await provider.sendAndConfirm(tx)
+
+            const response = await fetch('/api/merkleTree', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    poolAddress: account.toString(),
+                    element: deposit.commitment.toString(),
+                }),
+            })
+            const { index } = await response.json()
 
             handleNoteDownload(index, secret, nullifier, nullifierHash)
 
-            return txId
+            return signature
         },
         onSuccess: (tx) => {
             transactionToast(tx)
@@ -221,7 +186,13 @@ export function useSukuraProgramAccount({ account }: { account: PublicKey }) {
 
     const withdrawMutation = useMutation({
         mutationKey: ['sukura', 'withdraw', { cluster, account }],
-        mutationFn: async (data: NoteData) => {
+        mutationFn: async ({
+            noteData,
+            recipientAddress,
+        }: {
+            noteData: NoteData
+            recipientAddress: PublicKey
+        }) => {
             const response = await fetch(`/api/merkleTree/${account.toString()}`, {
                 method: 'GET',
                 headers: {
@@ -229,24 +200,23 @@ export function useSukuraProgramAccount({ account }: { account: PublicKey }) {
                 },
             })
             const treeData: IMerkleTree = (await response.json()).treeData
-            const { tree, vaultAddress } = treeData
+            const { tree, vaultAddress, amountPerWithdrawal } = treeData
             const poseidonHash = await createPoseidonHash()
             const deTree = MerkleTree.deserialize(tree, poseidonHash)
-            const { index, secret, nullifier, nullifierHash } = data
-            const recipient = new PublicKey('CU49N3WyQAr9bPmqWvstkWu2gY7wmAHYkSjBbiDQtQQq')
+            const { index, secret, nullifier, nullifierHash } = noteData
             const relayerWallet = (await getOrCreateRelayerWallet()) as string
-
+            const fee = new BN(amountPerWithdrawal * 0.01)
             const { pathElements, pathIndices } = deTree.path(index)
             const input = {
                 root: deTree.root,
                 nullifierHash: nullifierHash,
                 nullifier: nullifier,
-                recipient: solanaAddressToBigInt(recipient.toString()),
-                secret: secret,
+                recipient: solanaAddressToBigInt(recipientAddress.toString()),
+                secret,
                 pathElements,
                 pathIndices,
                 relayer: solanaAddressToBigInt(relayerWallet),
-                fee,
+                fee: fee.toString(),
             }
 
             const { proof, publicSignals } = await generateWitnessAndProve(input)
@@ -255,12 +225,12 @@ export function useSukuraProgramAccount({ account }: { account: PublicKey }) {
 
             const proofInstruction = Buffer.from([...proofArray, ...publicSignalsArray.flat()])
             const nullifierHashArr = [...bigintToUint8Array(BigInt(nullifierHash))]
-            const root = [...bigintToUint8Array(BigInt(input.root))]
+            const rootArr = [...bigintToUint8Array(BigInt(input.root))]
 
             const instruction = await program.methods
-                .withdraw(nullifierHashArr, root, proofInstruction)
+                .withdraw(nullifierHashArr, rootArr, proofInstruction, fee)
                 .accountsStrict({
-                    recipient,
+                    recipient: recipientAddress,
                     pool: account,
                     systemProgram: SystemProgram.programId,
                     vault: new PublicKey(vaultAddress),

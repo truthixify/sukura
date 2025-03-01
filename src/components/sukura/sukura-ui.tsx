@@ -6,6 +6,7 @@ import { ExplorerLink } from '../cluster/cluster-ui'
 import { ellipsify } from '../ui/ui-layout'
 import { useSukuraProgram, useSukuraProgramAccount } from './sukura-data-access'
 import { handleNoteUpload, NoteData } from 'utils/utils'
+import toast from 'react-hot-toast'
 
 export function SukuraCreate() {
     const { initialize } = useSukuraProgram()
@@ -70,6 +71,7 @@ function SukuraCard({ account }: { account: PublicKey }) {
 
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
     const [noteData, setNoteData] = useState<NoteData | null>(null)
+    const [recipientAddress, setRecipientAddress] = useState<PublicKey>()
 
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files && event.target.files.length > 0) {
@@ -78,22 +80,33 @@ function SukuraCard({ account }: { account: PublicKey }) {
 
             try {
                 const parsedData = await handleNoteUpload(file)
-                setNoteData(parsedData) // Store parsed data in state
-            } catch (error) {
-                console.error('Invalid file format', error)
-                alert('Invalid file format. Please upload a valid JSON file.')
+                setNoteData(parsedData)
+            } catch (err) {
+                toast.error('Invalid file format. Please upload a valid JSON file.')
             }
+        }
+    }
+
+    const handleRecipientAddressChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        try {
+            setRecipientAddress(new PublicKey(event.target.value))
+        } catch (err) {
+            toast.error('Invalid recipient address. Please enter a valid Solana address.')
         }
     }
 
     const handleWithdraw = async () => {
         if (!noteData) {
-            console.log(noteData)
-            alert('Please upload a valid note file first.')
+            toast.error('Please upload a valid note file first.')
             return
         }
 
-        await withdrawMutation.mutateAsync(noteData)
+        if (!recipientAddress) {
+            toast.error('Please enter a valid recipient address.')
+            return
+        }
+
+        await withdrawMutation.mutateAsync({ noteData, recipientAddress })
     }
 
     return accountQuery.isLoading ? (
@@ -140,10 +153,21 @@ function SukuraCard({ account }: { account: PublicKey }) {
                         </h2>
                         <div className="card-actions justify-around">
                             <input type="file" onChange={handleFileChange} className="file-input" />
+                            <input
+                                type="text"
+                                className="w-full h-10 bg-inherit border-base-300 border-4 rounded-lg px-4"
+                                placeholder="Recipient address"
+                                onChange={handleRecipientAddressChange}
+                                autoCorrect="off"
+                                autoComplete="off"
+                                spellCheck="false"
+                            />
                             <button
                                 className="btn btn-xs lg:btn-md btn-outline"
                                 onClick={handleWithdraw}
-                                disabled={withdrawMutation?.isPending || !noteData}
+                                disabled={
+                                    withdrawMutation?.isPending || !noteData || !recipientAddress
+                                }
                             >
                                 Withdraw
                             </button>

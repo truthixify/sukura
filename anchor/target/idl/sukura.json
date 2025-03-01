@@ -262,6 +262,10 @@
         {
           "name": "proof_data",
           "type": "bytes"
+        },
+        {
+          "name": "fee",
+          "type": "u64"
         }
       ]
     }

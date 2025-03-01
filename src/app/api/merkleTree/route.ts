@@ -32,7 +32,7 @@ export async function POST(req: Request) {
         })
         await treeData.save()
 
-        return Response.json({ treeData })
+        return Response.json(treeData)
     } catch (err) {
         return Response.json({ err }, { status: 500 })
     }
@@ -59,6 +59,7 @@ export async function PUT(req: Request) {
         const poseidonHash = await createPoseidonHash()
         const tree = FixedMerkleTree.deserialize(prevTreeData.tree, poseidonHash)
         tree.insert(element)
+        const index = tree.indexOf(element)
         const newTreeData = await MerkleTree.findByIdAndUpdate(
             prevTreeData._id,
             { tree: tree.serialize() },
@@ -66,7 +67,7 @@ export async function PUT(req: Request) {
         )
         await newTreeData.save()
 
-        return Response.json({ newTreeData })
+        return Response.json({ index })
     } catch (err) {
         console.log(err)
         return Response.json({ err }, { status: 500 })
