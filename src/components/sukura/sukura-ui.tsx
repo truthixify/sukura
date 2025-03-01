@@ -32,6 +32,7 @@ export function SukuraUi() {
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
     const [noteData, setNoteData] = useState<NoteData | null>(null)
     const [recipientAddress, setRecipientAddress] = useState<PublicKey>()
+    const [isActiveTabDeposit, setIsActiveTabDeposit] = useState<boolean>(true)
 
     const { accounts, getProgramAccount } = useSukuraProgram()
     const { accountQuery, depositMutation, withdrawMutation } = useSukuraProgramAccount({
@@ -94,18 +95,28 @@ export function SukuraUi() {
     return accountQuery?.isLoading ? (
         <span className="loading loading-spinner loading-lg"></span>
     ) : (
-        <div className="tabs tabs-lift">
-            <input
-                type="radio"
-                name="my_tabs_4"
-                className="tab"
-                defaultChecked
-                aria-label="Deposit"
-            />
-            <div className="card card-bordered border-base-300 border-4 text-neutral-content tab-content">
-                <div className="card-body items-center text-center">
-                    <div className="space-y-6">
-                        <div className="flex space-x-4 my-8">
+        <div className="my-12">
+            <div className="tab-header flex justify-between">
+                <button
+                    className={`btn ${isActiveTabDeposit && 'btn-primary'}`}
+                    onClick={() => setIsActiveTabDeposit(true)}
+                >
+                    Deposit
+                </button>
+                <button
+                    className={`btn ${!isActiveTabDeposit && 'btn-primary'}`}
+                    onClick={() => setIsActiveTabDeposit(false)}
+                >
+                    Withdraw
+                </button>
+            </div>
+            {isActiveTabDeposit && (
+                <div className="border-base-300 border-2 my-8 p-8 text-neutral-content tab-body">
+                    <div className="space-y-6 flex flex-col items-start w-full">
+                        <div className="tooltip" data-tip="The pool deposit amount">
+                            Pool Amount <button className="btn btn-xs btn-success">i</button>
+                        </div>
+                        <div className="w-full flex justify-between my-8">
                             {poolAmountList.map((amount: number) => (
                                 <button
                                     key={amount}
@@ -117,46 +128,61 @@ export function SukuraUi() {
                                 </button>
                             ))}
                         </div>
-                        <div className="card-actions justify-around">
-                            <button
-                                className="btn btn-xs lg:btn-md btn-outline"
-                                onClick={() => depositMutation?.mutateAsync()}
-                                disabled={depositMutation?.isPending}
-                            >
-                                Deposit
-                            </button>
+                        <button
+                            className="btn lg:btn-md btn-outline btn-primary w-full"
+                            onClick={() => depositMutation?.mutateAsync()}
+                            disabled={depositMutation?.isPending}
+                        >
+                            Deposit
+                        </button>
+                    </div>
+                </div>
+            )}
+            {!isActiveTabDeposit && (
+                <div className="border-base-300 border-2 text-neutral-content my-8 py-8 px-4 tab-body">
+                    <div className="flex flex-col items-center text-center gap-4">
+                        <div className="space-y-6">
+                            <div className="flex flex-col gap-8">
+                                <div className="flex flex-col items-start gap-2">
+                                    <label htmlFor="file">Note</label>
+                                    <input
+                                        type="file"
+                                        id="file"
+                                        onChange={handleFileChange}
+                                        className="file-input file-input-primary"
+                                        required
+                                    />
+                                </div>
+                                <div className="flex flex-col items-start gap-2">
+                                    <label htmlFor="address">Recipient Address</label>
+                                    <input
+                                        type="text"
+                                        id="address"
+                                        className="input input-primary w-full"
+                                        placeholder="Address"
+                                        onChange={handleRecipientAddressChange}
+                                        autoCorrect="off"
+                                        autoComplete="off"
+                                        spellCheck="false"
+                                        required
+                                    />
+                                </div>
+                                <button
+                                    className="btn lg:btn-md btn-outline btn-primary"
+                                    onClick={handleWithdraw}
+                                    disabled={
+                                        withdrawMutation?.isPending ||
+                                        !noteData ||
+                                        !recipientAddress
+                                    }
+                                >
+                                    Withdraw
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <input type="radio" name="my_tabs_4" className="tab" aria-label="Withdraw" />
-            <div className="card card-bordered border-base-300 border-4 text-neutral-content tab-content">
-                <div className="card-body items-center text-center">
-                    <div className="space-y-6">
-                        <div className="card-actions justify-around">
-                            <input type="file" onChange={handleFileChange} className="file-input" />
-                            <input
-                                type="text"
-                                className="w-full h-10 bg-inherit border-base-300 border-4 rounded-lg px-4"
-                                placeholder="Recipient address"
-                                onChange={handleRecipientAddressChange}
-                                autoCorrect="off"
-                                autoComplete="off"
-                                spellCheck="false"
-                            />
-                            <button
-                                className="btn btn-xs lg:btn-md btn-outline"
-                                onClick={handleWithdraw}
-                                disabled={
-                                    withdrawMutation?.isPending || !noteData || !recipientAddress
-                                }
-                            >
-                                Withdraw
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            )}
         </div>
     )
 }
