@@ -4,7 +4,6 @@ import { useWallet } from '@solana/wallet-adapter-react'
 import { ExplorerLink } from '../cluster/cluster-ui'
 import { WalletButton } from '../solana/solana-provider'
 import { AppHero, ellipsify } from '../ui/ui-layout'
-import { useSukuraProgram } from './sukura-data-access'
 import { SukuraUi } from './sukura-ui'
 
 export default function SukuraFeature() {
@@ -12,7 +11,7 @@ export default function SukuraFeature() {
 
     return publicKey ? (
         <div>
-            <AppHero title="Sukura" subtitle={''}></AppHero>
+            {/* <AppHero title="Sukura" subtitle={''}></AppHero> */}
             <SukuraUi />
         </div>
     ) : (

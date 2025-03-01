@@ -8,7 +8,6 @@ import { useSukuraProgram, useSukuraProgramAccount } from './sukura-data-access'
 import { handleNoteUpload, NoteData } from 'utils/utils'
 import toast from 'react-hot-toast'
 import { poolAmountList } from '../admin/admin-ui'
-import { UseQueryResult, UseMutationResult } from '@tanstack/react-query'
 import BN from 'bn.js'
 
 type MerkleTreeData = {
@@ -29,41 +28,15 @@ type MerkleTreeData = {
 }
 
 export function SukuraUi() {
-    const { accounts, getProgramAccount } = useSukuraProgram()
-    const [accountQuery, setAccountQuery] = useState<UseQueryResult | null>(null)
-    const [depositMutation, setDepositMutation] = useState<UseMutationResult<
-        string,
-        Error,
-        void,
-        unknown
-    > | null>(null)
-    const [withdrawMutation, setWithdrawMutation] = useState<UseMutationResult<
-        string,
-        Error,
-        { noteData: NoteData; recipientAddress: PublicKey },
-        unknown
-    > | null>(null)
-    const [amountPerWithdrawal, setAmountPerWithdrawal] = useState<BN | null>(null)
-
-    useEffect(() => {
-        const account = accounts.data?.find(
-            (account) =>
-                account.account.amountPerWithdrawal.toNumber() === amountPerWithdrawal?.toNumber()
-        )?.publicKey
-
-        if (account) {
-            const { accountQuery, depositMutation, withdrawMutation } = useSukuraProgramAccount({
-                account,
-            })
-            setAccountQuery(accountQuery)
-            setDepositMutation(depositMutation)
-            setWithdrawMutation(withdrawMutation)
-        }
-    }, [amountPerWithdrawal])
-
+    const [amountPerWithdrawal, setAmountPerWithdrawal] = useState<number>(poolAmountList[0])
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
     const [noteData, setNoteData] = useState<NoteData | null>(null)
     const [recipientAddress, setRecipientAddress] = useState<PublicKey>()
+
+    const { accounts, getProgramAccount } = useSukuraProgram()
+    const { accountQuery, depositMutation, withdrawMutation } = useSukuraProgramAccount({
+        amountPerWithdrawal,
+    })
 
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files && event.target.files.length > 0) {
@@ -72,7 +45,9 @@ export function SukuraUi() {
 
             try {
                 const parsedData = await handleNoteUpload(file)
+                parsedData
                 setNoteData(parsedData)
+                setAmountPerWithdrawal(parsedData.amountPerWithdrawal / LAMPORTS_PER_SOL)
             } catch (err) {
                 toast.error('Invalid file format. Please upload a valid JSON file.')
             }
@@ -120,25 +95,23 @@ export function SukuraUi() {
         <span className="loading loading-spinner loading-lg"></span>
     ) : (
         <div className="tabs tabs-lift">
-            <label className="tab">Deposit</label>
-            <div className="card card-bordered border-base-300 border-4 text-neutral-content">
+            <input
+                type="radio"
+                name="my_tabs_4"
+                className="tab"
+                defaultChecked
+                aria-label="Deposit"
+            />
+            <div className="card card-bordered border-base-300 border-4 text-neutral-content tab-content">
                 <div className="card-body items-center text-center">
                     <div className="space-y-6">
-                        {/* <h2
-                            className="card-title justify-center text-3xl cursor-pointer"
-                            onClick={() => accountQuery?.refetch()}
-                        >
-                            {amount.toString()}
-                        </h2> */}
                         <div className="flex space-x-4 my-8">
                             {poolAmountList.map((amount: number) => (
                                 <button
                                     key={amount}
                                     aria-label="Radio"
-                                    className={`btn btn-xs lg:btn-md ${amountPerWithdrawal?.toNumber() === amount ? 'btn-success' : 'btn-neutral'}`}
-                                    onClick={() =>
-                                        setAmountPerWithdrawal(new BN(amount * LAMPORTS_PER_SOL))
-                                    }
+                                    className={`btn btn-xs lg:btn-md ${amountPerWithdrawal === amount ? 'btn-success' : 'btn-neutral'}`}
+                                    onClick={() => setAmountPerWithdrawal(amount)}
                                 >
                                     {amount} SOL
                                 </button>
@@ -156,16 +129,10 @@ export function SukuraUi() {
                     </div>
                 </div>
             </div>
-            <label className="tab">Withdraw</label>
-            <div className="card card-bordered border-base-300 border-4 text-neutral-content">
+            <input type="radio" name="my_tabs_4" className="tab" aria-label="Withdraw" />
+            <div className="card card-bordered border-base-300 border-4 text-neutral-content tab-content">
                 <div className="card-body items-center text-center">
                     <div className="space-y-6">
-                        {/* <h2
-                            className="card-title justify-center text-3xl cursor-pointer"
-                            onClick={() => accountQuery?.refetch()}
-                        >
-                            {amount.toString()}
-                        </h2> */}
                         <div className="card-actions justify-around">
                             <input type="file" onChange={handleFileChange} className="file-input" />
                             <input

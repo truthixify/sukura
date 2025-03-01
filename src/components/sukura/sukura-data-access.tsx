@@ -4,6 +4,7 @@ import { getSukuraProgram, getSukuraProgramId } from '@project/anchor'
 import { useConnection } from '@solana/wallet-adapter-react'
 import {
     Cluster,
+    LAMPORTS_PER_SOL,
     PublicKey,
     SystemProgram,
     TransactionMessage,
@@ -62,10 +63,17 @@ export function useSukuraProgram() {
     }
 }
 
-export function useSukuraProgramAccount({ account }: { account: PublicKey }) {
+export function useSukuraProgramAccount({ amountPerWithdrawal }: { amountPerWithdrawal: number }) {
     const { cluster } = useCluster()
     const transactionToast = useTransactionToast()
     const { program, accounts } = useSukuraProgram()
+    const defaultPublicKey = new PublicKey('11111111111111111111111111111111')
+    const account =
+        accounts.data?.find(
+            (account) =>
+                account.account.amountPerWithdrawal.toNumber() ===
+                amountPerWithdrawal * LAMPORTS_PER_SOL
+        )?.publicKey || defaultPublicKey
 
     const accountQuery = useQuery({
         queryKey: ['sukura', 'fetch', { cluster, account }],
@@ -114,9 +122,9 @@ export function useSukuraProgramAccount({ account }: { account: PublicKey }) {
                     element: deposit.commitment.toString(),
                 }),
             })
-            const { index } = await response.json()
+            const { index, amountPerWithdrawal } = await response.json()
 
-            handleNoteDownload(index, secret, nullifier, nullifierHash)
+            handleNoteDownload(index, secret, nullifier, nullifierHash, amountPerWithdrawal)
 
             return signature
         },

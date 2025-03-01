@@ -261,19 +261,22 @@ export interface NoteData {
     secret: string
     nullifier: string
     nullifierHash: string
+    amountPerWithdrawal: number
 }
 
 export const handleNoteDownload = (
     index: number,
     secret: string,
     nullifier: string,
-    nullifierHash: string
+    nullifierHash: string,
+    amountPerWithdrawal: number
 ) => {
     const data = {
         index,
         secret,
         nullifier,
         nullifierHash,
+        amountPerWithdrawal,
     }
 
     try {
@@ -305,6 +308,7 @@ export const handleNoteUpload = (file: File): Promise<NoteData> => {
                     secret: data.secret,
                     nullifier: data.nullifier,
                     nullifierHash: data.nullifierHash,
+                    amountPerWithdrawal: data.amountPerWithdrawal,
                 })
             } catch (error) {
                 console.error('Error while parsing the file.', error)

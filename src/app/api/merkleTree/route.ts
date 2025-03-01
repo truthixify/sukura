@@ -67,7 +67,7 @@ export async function PUT(req: Request) {
         )
         await newTreeData.save()
 
-        return Response.json({ index })
+        return Response.json({ index, amountPerWithdrawal: newTreeData.amountPerWithdrawal })
     } catch (err) {
         console.log(err)
         return Response.json({ err }, { status: 500 })
