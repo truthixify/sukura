@@ -48,7 +48,6 @@ export function SukuraUi() {
                 const parsedData = await handleNoteUpload(file)
                 parsedData
                 setNoteData(parsedData)
-                setAmountPerWithdrawal(parsedData.amountPerWithdrawal / LAMPORTS_PER_SOL)
             } catch (err) {
                 toast.error('Invalid file format. Please upload a valid JSON file.')
             }

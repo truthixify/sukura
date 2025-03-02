@@ -18,6 +18,7 @@ import { useAnchorProvider } from '../solana/solana-provider'
 import { useTransactionToast } from '../ui/ui-layout'
 import { BN } from 'bn.js'
 import { getComputeUnitsIx } from '../../utils/computeUnit'
+import { confirmTransaction } from '@/utils/txConfirmationRetry'
 
 const levels = 28
 
@@ -74,7 +75,19 @@ export function useSukuraProgram() {
             }).compileToV0Message()
             const tx = new VersionedTransaction(messageV0)
             tx.sign([pool])
-            const signature = await provider.sendAndConfirm(tx)
+
+            let signature
+            try {
+                const signatureArr = await provider.sendAll([{ tx }])
+                signature = signatureArr[0]
+            } catch (err) {
+                throw new Error('Transaction submission failed')
+            }
+
+            const confirmed = await confirmTransaction(connection, signature)
+            if (!confirmed) {
+                throw new Error('Transaction failed or is still pending')
+            }
 
             await fetch('/api/merkleTree', {
                 method: 'POST',
@@ -95,7 +108,7 @@ export function useSukuraProgram() {
             transactionToast(signature)
             return accounts.refetch()
         },
-        onError: () => toast.error('Failed to initialize account'),
+        onError: (err) => toast.error(`Failed to initialize account: ${err}`),
     })
 
     return {

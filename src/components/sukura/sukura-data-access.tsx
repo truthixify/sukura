@@ -132,7 +132,7 @@ export function useSukuraProgramAccount({ amountPerWithdrawal }: { amountPerWith
             transactionToast(tx)
             return accounts.refetch()
         },
-        onError: (err) => toast.error(`Error depositing: ${err}`),
+        onError: (err) => toast.error(`Failed to deposit: ${err}`),
     })
 
     const withdrawMutation = useMutation({
@@ -144,24 +144,30 @@ export function useSukuraProgramAccount({ amountPerWithdrawal }: { amountPerWith
             noteData: NoteData
             recipientAddress: PublicKey
         }) => {
+            const { index, secret, nullifier, nullifierHash, amountPerWithdrawal } = noteData
+            const account =
+                accounts.data?.find(
+                    (account) =>
+                        account.account.amountPerWithdrawal.toNumber() ===
+                        amountPerWithdrawal * LAMPORTS_PER_SOL
+                )?.publicKey || defaultPublicKey
             const response = await fetch(`/api/merkleTree/${account.toString()}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
                 },
             })
-            const treeData: IMerkleTree = (await response.json()).treeData
-            const { tree, vaultAddress, amountPerWithdrawal } = treeData
+            const treeData: IMerkleTree = await response.json()
+            const { tree, vaultAddress } = treeData
             const poseidonHash = await createPoseidonHash()
             const deTree = MerkleTree.deserialize(tree, poseidonHash)
-            const { index, secret, nullifier, nullifierHash } = noteData
             const relayerWallet = (await getOrCreateRelayerWallet()) as string
             const fee = new BN(amountPerWithdrawal * 0.01)
             const { pathElements, pathIndices } = deTree.path(index)
             const input = {
                 root: deTree.root,
                 nullifierHash: nullifierHash,
-                nullifier: nullifier,
+                nullifier,
                 recipient: solanaAddressToBigInt(recipientAddress.toString()),
                 secret,
                 pathElements,
@@ -205,7 +211,7 @@ export function useSukuraProgramAccount({ amountPerWithdrawal }: { amountPerWith
             transactionToast(tx)
             return accountQuery.refetch()
         },
-        onError: (err) => toast.error(`Error withdrawing: ${err}`),
+        onError: (err) => toast.error(`Failed to withdraw: ${err}`),
     })
 
     return {

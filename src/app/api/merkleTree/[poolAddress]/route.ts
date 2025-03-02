@@ -12,7 +12,7 @@ export async function GET(req: Request, { params }: { params: { poolAddress: str
             return Response.json({ error: 'Merkle tree not found' }, { status: 404 })
         }
 
-        return Response.json({ treeData })
+        return Response.json(treeData)
     } catch (err) {
         return Response.json({ err }, { status: 500 })
     }
