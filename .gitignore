@@ -40,3 +40,6 @@ tmp
 # circuit
 **/build
 **/*.ptau
+
+# test-ledger
+**/test-ledger

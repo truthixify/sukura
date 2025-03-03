@@ -3,8 +3,8 @@ import { Connection } from '@solana/web3.js'
 export const confirmTransaction = async (
     connection: Connection,
     signature: string,
-    maxRetries = 3,
-    delay = 1000
+    maxRetries = 5,
+    delay = 500
 ) => {
     for (let i = 0; i < maxRetries; i++) {
         const status = await connection.getSignatureStatus(signature, {
@@ -22,5 +22,4 @@ export const confirmTransaction = async (
     }
 
     throw new Error(`Transaction not found or still pending:', ${signature}`)
-    return false
 }

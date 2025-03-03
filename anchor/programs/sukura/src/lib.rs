@@ -14,7 +14,7 @@ pub use state::*;
 
 use anchor_lang::prelude::*;
 
-declare_id!("F7goVkKwpXRhfVEemfgbP9viDrqdNHEbT49TrEcVKk1N");
+declare_id!("BAeMcGDnkVc53FFhAjPePpJRABsGS8NAehqqsYNztXJF");
 
 #[program]
 pub mod sukura {

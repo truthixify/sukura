@@ -7,6 +7,7 @@ import toast, { Toaster } from 'react-hot-toast'
 
 import { ClusterUiSelect, ExplorerLink } from '../cluster/cluster-ui'
 import { WalletButton } from '../solana/solana-provider'
+import Loader from './loader'
 
 export function UiLayout({
     children,
@@ -32,7 +33,7 @@ export function UiLayout({
                 <Suspense
                     fallback={
                         <div className="text-center my-32">
-                            <span className="loading loading-spinner loading-lg"></span>
+                            <Loader />
                         </div>
                     }
                 >

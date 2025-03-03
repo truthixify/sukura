@@ -257,44 +257,11 @@ function addBitmaskToByte(byte: number, yIsPositive: boolean) {
 }
 
 export interface NoteData {
-    index: number
     secret: string
     nullifier: string
     nullifierHash: string
+    commitment: string
     amountPerWithdrawal: number
-}
-
-export const handleNoteDownload = (
-    index: number,
-    secret: string,
-    nullifier: string,
-    nullifierHash: string,
-    amountPerWithdrawal: number
-) => {
-    const data = {
-        index,
-        secret,
-        nullifier,
-        nullifierHash,
-        amountPerWithdrawal,
-    }
-
-    try {
-        const jsonData = JSON.stringify(data, null, 2)
-
-        const blob = new Blob([jsonData], { type: 'application/json' })
-
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `sukura-${nullifierHash}.json`
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
-        URL.revokeObjectURL(url)
-    } catch (err) {
-        throw err
-    }
 }
 
 export const handleNoteUpload = (file: File): Promise<NoteData> => {
@@ -304,10 +271,10 @@ export const handleNoteUpload = (file: File): Promise<NoteData> => {
             try {
                 const data: NoteData = JSON.parse(reader.result as string)
                 resolve({
-                    index: data.index,
                     secret: data.secret,
                     nullifier: data.nullifier,
                     nullifierHash: data.nullifierHash,
+                    commitment: data.commitment,
                     amountPerWithdrawal: data.amountPerWithdrawal,
                 })
             } catch (error) {

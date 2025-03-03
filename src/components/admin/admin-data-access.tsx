@@ -84,23 +84,20 @@ export function useSukuraProgram() {
                 throw new Error('Transaction submission failed')
             }
 
-            const confirmed = await confirmTransaction(connection, signature)
-            if (!confirmed) {
-                throw new Error('Transaction failed or is still pending')
-            }
+            await confirmTransaction(connection, signature)
 
-            await fetch('/api/merkleTree', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    poolAddress: pool.publicKey.toString(),
-                    levels: 28,
-                    amountPerWithdrawal: amountPerWithdrawal.toNumber(),
-                    vaultAddress: vault.toString(),
-                }),
-            })
+            // await fetch('/api/merkleTree', {
+            //     method: 'POST',
+            //     headers: {
+            //         'Content-Type': 'application/json',
+            //     },
+            //     body: JSON.stringify({
+            //         poolAddress: pool.publicKey.toString(),
+            //         levels: 28,
+            //         amountPerWithdrawal: amountPerWithdrawal.toNumber(),
+            //         vaultAddress: vault.toString(),
+            //     }),
+            // })
 
             return signature
         },

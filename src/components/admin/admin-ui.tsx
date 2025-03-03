@@ -7,6 +7,7 @@ import { ellipsify } from '../ui/ui-layout'
 import { useSukuraProgram, useSukuraProgramAccount } from './admin-data-access'
 import { uint8ArrayToBigInt } from 'utils/utils'
 import { BN } from 'bn.js'
+import Loader from '../ui/loader'
 
 export const poolAmountList = [0.1, 1, 10, 100]
 
@@ -28,6 +29,7 @@ export function SukuraPoolCreate() {
                     </button>
                 ))}
             </div>
+            {initializePool.isPending && <progress className="progress w-1/2"></progress>}
             <button
                 className="btn btn-small lg:btn-md btn-primary"
                 onClick={() => initializePool.mutateAsync(amountPerWithdrawal)}
@@ -43,12 +45,12 @@ export function SukuraPoolList() {
     const { accounts, getProgramAccount } = useSukuraProgram()
 
     if (getProgramAccount.isLoading) {
-        return <span className="loading loading-spinner loading-lg"></span>
+        return <Loader />
     }
 
     if (!getProgramAccount.data?.value) {
         return (
-            <div className="alert alert-info flex justify-center">
+            <div className="alert alert-warning flex justify-center">
                 <span>
                     Program account not found. Make sure you have deployed the program and are on
                     the correct cluster.
@@ -61,7 +63,7 @@ export function SukuraPoolList() {
         <div className={'space-y-6'}>
             <h1>Active Pool List</h1>
             {accounts.isLoading ? (
-                <span className="loading loading-spinner loading-lg"></span>
+                <span className="text-center loading loading-spinner loading-lg"></span>
             ) : accounts.data?.length ? (
                 <div className="grid md:grid-cols-1 gap-4">
                     {accounts.data?.map((account) => (
@@ -96,10 +98,10 @@ function SukuraPoolCard({ account }: { account: PublicKey }) {
     const vault = useMemo(() => accountQuery.data?.vault ?? '', [accountQuery.data?.vault])
 
     return accountQuery.isLoading ? (
-        <span className="loading loading-spinner loading-lg"></span>
+        <Loader />
     ) : (
         <>
-            <div className="card card-bordered border-base-300 border-4 text-neutral-content">
+            <div className="card card-bordered border-base border-4 text-neutral-content">
                 <div className="card-body items-start">
                     <div className="space-y-6">
                         <h2

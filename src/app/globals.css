@@ -17,3 +17,11 @@ body {
 .wallet-adapter-button {
     font-family: inherit !important;
 }
+
+.btn, .card, .input, .file-input, .modal-box, .checkbox {
+    @apply rounded-none;
+}
+
+.btn {
+    text-transform: uppercase;
+}

@@ -21,7 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     connectDB().catch((err) => console.log(err))
     return (
         <html lang="en">
-            <body>
+            <body data-theme="sukura">
                 <ReactQueryProvider>
                     <ClusterProvider>
                         <SolanaProvider>
