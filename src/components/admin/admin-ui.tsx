@@ -7,7 +7,6 @@ import { ellipsify } from '../ui/ui-layout'
 import { useSukuraProgram, useSukuraProgramAccount } from './admin-data-access'
 import { uint8ArrayToBigInt } from 'utils/utils'
 import { BN } from 'bn.js'
-import Loader from '../ui/loader'
 
 export const poolAmountList = [0.1, 1, 10, 100]
 
@@ -45,7 +44,7 @@ export function SukuraPoolList() {
     const { accounts, getProgramAccount } = useSukuraProgram()
 
     if (getProgramAccount.isLoading) {
-        return <Loader />
+        return <span className="loading loading-spinner loading-lg"></span>
     }
 
     if (!getProgramAccount.data?.value) {
@@ -98,10 +97,10 @@ function SukuraPoolCard({ account }: { account: PublicKey }) {
     const vault = useMemo(() => accountQuery.data?.vault ?? '', [accountQuery.data?.vault])
 
     return accountQuery.isLoading ? (
-        <Loader />
+        <span className="loading loading-spinner loading-lg"></span>
     ) : (
         <>
-            <div className="card card-bordered border-base border-4 text-neutral-content">
+            <div className="card card-bordered border-base-300 border-4 text-neutral-content">
                 <div className="card-body items-start">
                     <div className="space-y-6">
                         <h2

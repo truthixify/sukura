@@ -23,7 +23,6 @@ import { IMerkleTree } from '@/app/api/merkleTree/model'
 import MerkleTree from 'fixed-merkle-tree'
 import { getOrCreateRelayerWallet } from 'utils/relayer'
 import { Groth16Proof, PublicSignals } from 'snarkjs'
-import Loader from '../ui/loader'
 
 type MerkleTreeData = {
     merkleTree: {
@@ -283,7 +282,7 @@ export function SukuraUi() {
     }
 
     if (getProgramAccount.isLoading) {
-        return <Loader />
+        return <span className="loading loading-spinner loading-lg"></span>
     }
 
     if (!getProgramAccount.data?.value) {
@@ -298,16 +297,16 @@ export function SukuraUi() {
     }
 
     // if(isGenProof) {
-    //     return <Loader />
+    //     return <span className="loading loading-spinner loading-lg"></span>
     // }
 
     return accountQuery.isLoading ? (
-        <Loader />
+        <span className="loading loading-spinner loading-lg"></span>
     ) : (
-        <div className="my-12 border-4 border-primary shadow-[8px_8px_0px_0px_gray] hover:shadow-[12px_12px_0px_0px_gray] transition-shadow duration-150 ease-in-out">
+        <div className="my-12 border-light-300 border-4">
             <div className="tab-header flex justify-between border-light-300 border-b-4 h-16">
                 <button
-                    className={`w-1/2 h-full btn ${isActiveTabDeposit && 'bg-primary text-black'}`}
+                    className={`w-1/2 h-full btn ${isActiveTabDeposit && 'bg-white text-black'}`}
                     onClick={() => setIsActiveTabDeposit(true)}
                 >
                     Deposit
@@ -362,14 +361,14 @@ export function SukuraUi() {
                                         note contains essential information that you will need to
                                         withdraw your funds.
                                         <br />
-                                        File name:{' '}
-                                        <span className="font-semibold text-blue-600">
+                                        File name: <span className="font-semibold text-blue-600">
                                             {noteFileName}
                                         </span>
                                     </p>
                                     <p className="mt-2 font-semibold">
-                                        If you lose this note, you will not be able to withdraw your
-                                        funds.
+                                        If you lose this note, you will
+                                        not be able to
+                                        withdraw your funds.
                                     </p>
                                     <p className="my-4">
                                         Please ensure you store it safely, such as in a secure
