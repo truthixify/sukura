@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import * as React from 'react'
 import { ReactNode, Suspense, useEffect, useRef } from 'react'
 import toast, { Toaster } from 'react-hot-toast'
@@ -8,6 +9,7 @@ import toast, { Toaster } from 'react-hot-toast'
 import { ClusterUiSelect, ExplorerLink } from '../cluster/cluster-ui'
 import { WalletButton } from '../solana/solana-provider'
 import Loader from './loader'
+import SukuraLogo from '../../../public/SukuraLogo.svg'
 
 export function UiLayout({
     children,
@@ -21,6 +23,9 @@ export function UiLayout({
             <div className="navbar bg-base-300 dark:text-neutral-content flex-col md:flex-row space-y-2 md:space-y-0">
                 <div className="flex-1">
                     <Link className="btn btn-ghost normal-case text-xl" href="/">
+                        <Image
+                            src={SukuraLogo}
+                        />
                         Sukura
                     </Link>
                 </div>
