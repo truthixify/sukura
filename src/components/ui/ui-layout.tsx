@@ -20,12 +20,10 @@ export function UiLayout({
 }) {
     return (
         <div className="h-full flex flex-col">
-            <div className="navbar bg-base-300 dark:text-neutral-content flex-col md:flex-row space-y-2 md:space-y-0">
+            <div className="navbar flex-col md:flex-row space-y-2 md:space-y-0">
                 <div className="flex-1">
                     <Link className="btn btn-ghost normal-case text-xl" href="/">
-                        <Image
-                            src={SukuraLogo}
-                        />
+                        <Image src={SukuraLogo} alt="Sukura Logo" />
                         Sukura
                     </Link>
                 </div>
@@ -165,4 +163,26 @@ export function useTransactionToast() {
             </div>
         )
     }
+}
+
+export function Button({
+    children,
+    onClick,
+    className,
+    disabled,
+}: {
+    children: ReactNode
+    onClick?: () => void
+    className?: string
+    disabled?: boolean
+}) {
+    return (
+        <button
+            className={`btn bg-gradient-primary text-white !px-6 ${className}`}
+            onClick={onClick}
+            disabled={disabled}
+        >
+            {children}
+        </button>
+    )
 }

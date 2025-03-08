@@ -4,6 +4,7 @@ import { SolanaProvider } from '@/components/solana/solana-provider'
 import { UiLayout } from '@/components/ui/ui-layout'
 import { ReactQueryProvider } from './react-query-provider'
 import { connectDB } from '@/utils/mongDb'
+import { BodyWrapper } from './body-wrapper'
 
 export const metadata = {
     title: 'Sukura',
@@ -20,8 +21,8 @@ const links: { label: string; path: string }[] = [
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     connectDB().catch((err) => console.log(err))
     return (
-        <html lang="en">
-            <body data-theme="retro">
+        <html lang="en" data-theme="sukura">
+            <BodyWrapper>
                 <ReactQueryProvider>
                     <ClusterProvider>
                         <SolanaProvider>
@@ -29,7 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                         </SolanaProvider>
                     </ClusterProvider>
                 </ReactQueryProvider>
-            </body>
+            </BodyWrapper>
         </html>
     )
 }

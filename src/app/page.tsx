@@ -1,5 +1,5 @@
-import SukuraFeature from '@/components/sukura/sukura-feature'
+import HomeFeature from '@/components/home/home-feature'
 
 export default function Page() {
-    return <SukuraFeature />
+    return <HomeFeature />
 }

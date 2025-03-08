@@ -18,10 +18,68 @@ body {
     font-family: inherit !important;
 }
 
-.btn, .card, .input, .file-input, .modal-box, .checkbox {
+/* .btn, .card, .input, .file-input, .modal-box, .checkbox {
     @apply rounded-none;
+} */
+
+.btn {
+    border-radius: 25px;
+    padding: 0 40px;
+}
+
+.bg-main-desktop {
+    @apply bg-[url('../../public/SUKURA-main-bg-desktop.svg')] bg-cover bg-center
+}
+
+.bg-mixer-desktop {
+    @apply bg-[url('../../public/SUKURA-mixer-bg-desktop.svg')] bg-cover bg-center
 }
 
 .btn {
-    text-transform: uppercase;
+    padding-left: 48px !important;
+    padding-right: 48px !important;
+}
+
+.range-selector button {
+    width: 12px !important;
+    height: 12px !important;
+    border-radius: 50%;
+    background-color: #fff;
+    position: relative;
+    z-index: 100;
+    margin-top: -3px;
+}
+
+.range-selector {
+    position: relative;
+    --onpointrx: 0%;
+}
+
+.range-selector::after {
+    content: "";
+    width: var(--onpointrx);
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: #7AFB96;
+    /* transform: translateX(var(--onpointrx)); */
+    transition: all 0.3s ease-in-out;
+    border-radius: inherit;
+}
+
+.range-btn-active {
+    background-color: #7AFB96 !important;
+    position: relative;
+}
+
+.range-btn-active::after {
+    position: absolute;
+    top: 50%;
+    content: "";
+    width: 4px;
+    height: 40px;
+    background-color: inherit;
+    transform: translate(-50%, -50%);
+    clip-path: polygon(50% 0%, 68% 50%, 50% 100%, 32% 51%);
 }

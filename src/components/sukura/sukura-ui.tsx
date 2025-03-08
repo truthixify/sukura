@@ -3,7 +3,7 @@
 import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js'
 import React, { useEffect, useMemo, useState } from 'react'
 import { ExplorerLink } from '../cluster/cluster-ui'
-import { ellipsify } from '../ui/ui-layout'
+import { Button, ellipsify } from '../ui/ui-layout'
 import { useSukuraProgram, useSukuraProgramAccount } from './sukura-data-access'
 import {
     bigintToUint8Array,
@@ -23,6 +23,8 @@ import { IMerkleTree } from '@/app/api/merkleTree/model'
 import MerkleTree from 'fixed-merkle-tree'
 import { getOrCreateRelayerWallet } from 'utils/relayer'
 import { Groth16Proof, PublicSignals } from 'snarkjs'
+import Image from 'next/image'
+import ArrowUp from '../../../public/arrowup.svg'
 
 type MerkleTreeData = {
     merkleTree: {
@@ -77,7 +79,8 @@ export function SukuraUi() {
 
     const handleAmountChange = (
         e: React.MouseEvent<HTMLButtonElement>,
-        amountPerWithdrawal: number
+        amountPerWithdrawal: number,
+        index: number
     ) => {
         setAmountPerWithdrawal(amountPerWithdrawal)
         const account =
@@ -87,6 +90,20 @@ export function SukuraUi() {
                     amountPerWithdrawal * LAMPORTS_PER_SOL
             )?.publicKey || defaultPublicKey
         setAccount(account)
+        const rangeSelector = document.querySelector('.range-selector')
+        const prevButtons = document.querySelectorAll('.range-selector button')
+
+        if (rangeSelector) {
+            rangeSelector.style.setProperty('--onpointrx', `${index * 33.33333333}%`)
+
+            prevButtons.forEach((btn) => {
+                btn.style.backgroundColor = '#FFFFFF'
+            })
+
+            for (let i = 0; i < index; i++) {
+                prevButtons[i].style.backgroundColor = '#7AFB96'
+            }
+        }
     }
 
     const handleDepositNoteDownload = async () => {
@@ -300,49 +317,64 @@ export function SukuraUi() {
     //     return <span className="loading loading-spinner loading-lg"></span>
     // }
 
-    return accountQuery.isLoading ? (
+    return false /*accountQuery.isLoading*/ ? (
         <span className="loading loading-spinner loading-lg"></span>
     ) : (
-        <div className="my-12 border-light-300 border-4">
-            <div className="tab-header flex justify-between border-light-300 border-b-4 h-16">
+        <div className=" min-w-[600px]">
+            <div className="tab-header flex justify-between items-center h-12 w-2/5 bg-base-300 rounded-full py-2 px-2">
                 <button
-                    className={`w-1/2 h-full btn ${isActiveTabDeposit && 'bg-white text-black'}`}
+                    className={`w-1/2 h-10 btn btn-xs hover:bg-base-200 ${isActiveTabDeposit ? 'bg-base-200 text-white' : 'bg-base-300 border-none'}`}
                     onClick={() => setIsActiveTabDeposit(true)}
                 >
                     Deposit
                 </button>
                 <button
-                    className={`w-1/2 h-full btn ${!isActiveTabDeposit && 'bg-white text-black'}`}
+                    className={`w-1/2 h-10 btn btn-xs hover:bg-base-200 ${!isActiveTabDeposit ? 'bg-base-200 text-white' : 'bg-base-300 border-none'}`}
                     onClick={() => setIsActiveTabDeposit(false)}
                 >
                     Withdraw
                 </button>
             </div>
             {isActiveTabDeposit && (
-                <div className="text-neutral-content my-8 py-8 px-8 tab-body">
+                <div className="text-neutral-content bg-base-100 border-2 border-base-200 rounded-lg my-2 py-8 px-8 tab-body text-white">
                     <div className="flex flex-col items-start">
-                        <div className="tooltip mb-8" data-tip="The pool deposit amount">
-                            Pool Amount <button className="btn btn-xs btn-success">i</button>
+                        <div className="mb-8">
+                            <h1 className="my-4">Deposit Token</h1>
+                            <button className="btn btn-xs">SOL</button>
+                        </div>
+                        <h1 className="text-xl my-4">Amount to Deposit</h1>
+                        <div className="w-full rounded-full bg-base-300 p-4">
+                            <div className="range-selector flex justify-between h-[8px] w-full bg-base-200 rounded-full">
+                                {poolAmountList.map((amount: number, index: number) => (
+                                    <button
+                                        key={amount}
+                                        aria-label="Radio"
+                                        className={`cursor-pointer ${amountPerWithdrawal === amount ? 'range-btn-active' : ''}`}
+                                        onClick={(e) => handleAmountChange(e, amount, index)}
+                                        id={`amount-${amount}`}
+                                    ></button>
+                                ))}
+                            </div>
                         </div>
                         <div className="w-full flex justify-between">
                             {poolAmountList.map((amount: number) => (
-                                <button
+                                <label
                                     key={amount}
-                                    aria-label="Radio"
-                                    className={`btn btn-xs lg:btn-md w-1/4 h-8 ${amountPerWithdrawal === amount ? 'btn-success' : 'btn-neutral'}`}
-                                    onClick={(e) => handleAmountChange(e, amount)}
+                                    htmlFor={`amount-${amount}`}
+                                    className="cursor-pointer flex flex-col items-center text-neutral text-xs"
                                 >
-                                    {amount} SOL
-                                </button>
+                                    <Image src={ArrowUp} alt="arrow up" width={8} />
+                                    <p>{amount} SOL</p>
+                                </label>
                             ))}
                         </div>
-                        <button
-                            className="btn lg:btn-md btn-outline btn-block mt-12"
+                        <Button
+                            className="btn lg:btn-md btn-outline mt-12 self-center"
                             onClick={handleDepositModal}
                             disabled={depositMutation?.isPending}
                         >
-                            Deposit
-                        </button>
+                            Make Deposit
+                        </Button>
                     </div>
                     {!depositMutation.isPending && (
                         <dialog id="deposit-modal" className="modal">
@@ -361,14 +393,14 @@ export function SukuraUi() {
                                         note contains essential information that you will need to
                                         withdraw your funds.
                                         <br />
-                                        File name: <span className="font-semibold text-blue-600">
+                                        File name:{' '}
+                                        <span className="font-semibold text-blue-600">
                                             {noteFileName}
                                         </span>
                                     </p>
                                     <p className="mt-2 font-semibold">
-                                        If you lose this note, you will
-                                        not be able to
-                                        withdraw your funds.
+                                        If you lose this note, you will not be able to withdraw your
+                                        funds.
                                     </p>
                                     <p className="my-4">
                                         Please ensure you store it safely, such as in a secure
@@ -388,13 +420,9 @@ export function SukuraUi() {
                                             I have backed up my note safely
                                         </label>
                                     </div>
-                                    <button
-                                        className="btn lg:btn-md btn-outline w-full mt-4"
-                                        onClick={handleDeposit}
-                                        disabled={!isNoteSaved}
-                                    >
+                                    <Button onClick={handleDeposit} disabled={!isNoteSaved}>
                                         Send Deposit
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
                         </dialog>
@@ -402,7 +430,7 @@ export function SukuraUi() {
                 </div>
             )}
             {!isActiveTabDeposit && (
-                <div className="text-neutral-content my-8 p-8 tab-body">
+                <div className="text-neutral-content bg-base-100 border-2 border-base-200 rounded-lg my-2 p-8 tab-body text-white">
                     <div className="flex flex-col items-center text-center gap-12">
                         <div className="flex flex-col items-start gap-2 w-full">
                             <label htmlFor="file">Note</label>
@@ -427,7 +455,7 @@ export function SukuraUi() {
                                 required
                             />
                         </div>
-                        <button
+                        <Button
                             className="btn lg:btn-md btn-outline btn-block"
                             onClick={handleProofGen}
                             disabled={
@@ -437,7 +465,7 @@ export function SukuraUi() {
                             }
                         >
                             Withdraw
-                        </button>
+                        </Button>
                     </div>
                     {!withdrawMutation.isPending && (
                         <dialog id="withdraw-modal" className="modal">
@@ -456,13 +484,13 @@ export function SukuraUi() {
                                     </p>
                                 </div>
                                 <div className="flex flex-col items-start gap-4">
-                                    <button
+                                    <Button
                                         className="btn lg:btn-md btn-outline w-full"
                                         onClick={handleWithdrawal}
                                         disabled={!isGenProof}
                                     >
                                         Send Withdrawal
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
                         </dialog>

@@ -59,7 +59,7 @@ export function SukuraPoolList() {
     }
 
     return (
-        <div className={'space-y-6'}>
+        <div className="space-y-6">
             <h1>Active Pool List</h1>
             {accounts.isLoading ? (
                 <span className="text-center loading loading-spinner loading-lg"></span>

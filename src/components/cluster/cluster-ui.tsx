@@ -4,6 +4,7 @@ import { useConnection } from '@solana/wallet-adapter-react'
 import { useQuery } from '@tanstack/react-query'
 import { ReactNode } from 'react'
 import { useCluster } from './cluster-data-access'
+import { Button } from '../ui/ui-layout'
 
 export function ExplorerLink({
     path,
@@ -45,9 +46,9 @@ export function ClusterChecker({ children }: { children: ReactNode }) {
                 <span>
                     Error connecting to cluster <strong>{cluster.name}</strong>
                 </span>
-                <button className="btn btn-xs btn-neutral" onClick={() => query.refetch()}>
+                <Button className="btn btn-xs btn-neutral" onClick={() => query.refetch()}>
                     Refresh
-                </button>
+                </Button>
             </div>
         )
     }
@@ -58,7 +59,10 @@ export function ClusterUiSelect() {
     const { clusters, setCluster, cluster } = useCluster()
     return (
         <div className="dropdown dropdown-end">
-            <label tabIndex={0} className="btn btn-primary rounded-btn">
+            <label
+                tabIndex={0}
+                className="btn btn-primary rounded-btn bg-gradient-primary text-white"
+            >
                 {cluster.name}
             </label>
             <ul
