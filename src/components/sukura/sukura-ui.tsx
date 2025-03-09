@@ -3,7 +3,7 @@
 import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js'
 import React, { useEffect, useMemo, useState } from 'react'
 import { ExplorerLink } from '../cluster/cluster-ui'
-import { Button, ellipsify } from '../ui/ui-layout'
+import { Button, ellipsify, RangeSelector } from '../ui/ui-layout'
 import { useSukuraProgram, useSukuraProgramAccount } from './sukura-data-access'
 import {
     bigintToUint8Array,
@@ -17,37 +17,21 @@ import {
     solanaAddressToBigInt,
 } from 'utils/utils'
 import toast from 'react-hot-toast'
-import { poolAmountList } from '../admin/admin-ui'
 import BN from 'bn.js'
 import { IMerkleTree } from '@/app/api/merkleTree/model'
 import MerkleTree from 'fixed-merkle-tree'
 import { getOrCreateRelayerWallet } from 'utils/relayer'
 import { Groth16Proof, PublicSignals } from 'snarkjs'
 import Image from 'next/image'
-import ArrowUp from '../../../public/arrowup.svg'
-
-type MerkleTreeData = {
-    merkleTree: {
-        levels: number
-        filledSubtrees: number[][]
-        roots: number[][]
-        currentRootIndex: BN
-        nextIndex: number
-        zeros: number[][]
-    }
-    merkleRoot: number[]
-    commitments: number[][]
-    nullifiersHashes: number[][]
-    amountPerWithdrawal: BN
-    nonce: number
-    vault: PublicKey
-}
+import FileArrowUp from '../../../public/FileArrowUp.svg'
+import Trash from '../../../public/Trash.svg'
+import X from '../../../public/X.svg'
 
 export function SukuraUi() {
     const defaultPublicKey = new PublicKey('11111111111111111111111111111111')
     const { accounts, getProgramAccount } = useSukuraProgram()
 
-    const [amountPerWithdrawal, setAmountPerWithdrawal] = useState<number>(poolAmountList[0])
+    const [amountPerWithdrawal, setAmountPerWithdrawal] = useState<number>(0.1)
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
     const [depositNoteData, setDepositNoteData] = useState<NoteData | null>(null)
     const [withdrawalNoteData, setWithdrawalNoteData] = useState<NoteData | null>(null)
@@ -68,8 +52,7 @@ export function SukuraUi() {
         () =>
             accounts.data?.find(
                 (account) =>
-                    account.account.amountPerWithdrawal.toNumber() ===
-                    poolAmountList[0] * LAMPORTS_PER_SOL
+                    account.account.amountPerWithdrawal.toNumber() === 0.1 * LAMPORTS_PER_SOL
             )?.publicKey || defaultPublicKey
     )
 
@@ -77,11 +60,7 @@ export function SukuraUi() {
         account,
     })
 
-    const handleAmountChange = (
-        e: React.MouseEvent<HTMLButtonElement>,
-        amountPerWithdrawal: number,
-        index: number
-    ) => {
+    const handleAmountChange = (amountPerWithdrawal: number) => {
         setAmountPerWithdrawal(amountPerWithdrawal)
         const account =
             accounts.data?.find(
@@ -90,20 +69,11 @@ export function SukuraUi() {
                     amountPerWithdrawal * LAMPORTS_PER_SOL
             )?.publicKey || defaultPublicKey
         setAccount(account)
-        const rangeSelector = document.querySelector('.range-selector')
-        const prevButtons = document.querySelectorAll('.range-selector button')
+    }
 
-        if (rangeSelector) {
-            rangeSelector.style.setProperty('--onpointrx', `${index * 33.33333333}%`)
-
-            prevButtons.forEach((btn) => {
-                btn.style.backgroundColor = '#FFFFFF'
-            })
-
-            for (let i = 0; i < index; i++) {
-                prevButtons[i].style.backgroundColor = '#7AFB96'
-            }
-        }
+    const handleRecipientAdrressDelete = () => {
+        setRecipientAddress(undefined)
+        document.getElementById('address').value = ''
     }
 
     const handleDepositNoteDownload = async () => {
@@ -187,15 +157,18 @@ export function SukuraUi() {
         setIsNoteSaved(false)
     }
 
-    const handleWithdrawalNoteUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (event.target.files && event.target.files.length > 0) {
-            const file = event.target.files[0]
+    const handleWithdrawalNoteUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            const file = e.target.files[0]
             setSelectedFile(file)
+            setNoteFileName(file.name)
 
             try {
                 const parsedData = await handleNoteUpload(file)
                 parsedData
                 setWithdrawalNoteData(parsedData)
+
+                // setTimeout(() => setIsNoteUploaded(true), 5000)
                 setIsNoteUploaded(true)
             } catch (err) {
                 toast.error('Invalid file format. Please upload a valid JSON file.')
@@ -203,7 +176,34 @@ export function SukuraUi() {
         }
     }
 
+    const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault()
+        if (e.dataTransfer.files.length > 0) {
+            const file = e.dataTransfer.files[0]
+            setSelectedFile(file)
+            setNoteFileName(file.name)
+
+            try {
+                const parsedData = await handleNoteUpload(file)
+                parsedData
+                setWithdrawalNoteData(parsedData)
+
+                // setTimeout(() => setIsNoteUploaded(true), 5000)
+                setIsNoteUploaded(true)
+            } catch (err) {
+                toast.error('Invalid file format. Please upload a valid JSON file.')
+            }
+        }
+    }
+
+    const handleDeleteUploadedNote = () => {
+        setSelectedFile(null)
+        setIsNoteUploaded(false)
+    }
+
     const handleProofGen = async () => {
+        document.getElementById('withdraw-modal')?.showModal()
+
         if (!withdrawalNoteData) {
             toast.error('Please upload a valid note file first.')
             return
@@ -276,7 +276,6 @@ export function SukuraUi() {
         if (isNoteUploaded && isGenProof) {
             document.getElementById('withdraw-modal')?.showModal()
         } else {
-            console.log(proof)
             toast.error('Failed to upload note')
         }
 
@@ -320,7 +319,7 @@ export function SukuraUi() {
     return false /*accountQuery.isLoading*/ ? (
         <span className="loading loading-spinner loading-lg"></span>
     ) : (
-        <div className=" min-w-[600px]">
+        <div className=" min-w-[800px]">
             <div className="tab-header flex justify-between items-center h-12 w-2/5 bg-base-300 rounded-full py-2 px-2">
                 <button
                     className={`w-1/2 h-10 btn btn-xs hover:bg-base-200 ${isActiveTabDeposit ? 'bg-base-200 text-white' : 'bg-base-300 border-none'}`}
@@ -337,39 +336,17 @@ export function SukuraUi() {
             </div>
             {isActiveTabDeposit && (
                 <div className="text-neutral-content bg-base-100 border-2 border-base-200 rounded-lg my-2 py-8 px-8 tab-body text-white">
-                    <div className="flex flex-col items-start">
-                        <div className="mb-8">
-                            <h1 className="my-4">Deposit Token</h1>
-                            <button className="btn btn-xs">SOL</button>
-                        </div>
-                        <h1 className="text-xl my-4">Amount to Deposit</h1>
-                        <div className="w-full rounded-full bg-base-300 p-4">
-                            <div className="range-selector flex justify-between h-[8px] w-full bg-base-200 rounded-full">
-                                {poolAmountList.map((amount: number, index: number) => (
-                                    <button
-                                        key={amount}
-                                        aria-label="Radio"
-                                        className={`cursor-pointer ${amountPerWithdrawal === amount ? 'range-btn-active' : ''}`}
-                                        onClick={(e) => handleAmountChange(e, amount, index)}
-                                        id={`amount-${amount}`}
-                                    ></button>
-                                ))}
-                            </div>
-                        </div>
-                        <div className="w-full flex justify-between">
-                            {poolAmountList.map((amount: number) => (
-                                <label
-                                    key={amount}
-                                    htmlFor={`amount-${amount}`}
-                                    className="cursor-pointer flex flex-col items-center text-neutral text-xs"
-                                >
-                                    <Image src={ArrowUp} alt="arrow up" width={8} />
-                                    <p>{amount} SOL</p>
-                                </label>
-                            ))}
-                        </div>
+                    <div className="flex flex-col items-start gap-12">
+                        {/* <div>
+                            <h1 className="mb-4">Deposit Token</h1>
+                            <div className="w-28 px-4 h-8 flex items-center rounded-full bg-gradient-primary">SOL</div>
+                        </div> */}
+                        <RangeSelector
+                            amountPerWithdrawal={amountPerWithdrawal}
+                            handleAmountChange={handleAmountChange}
+                        />
                         <Button
-                            className="btn lg:btn-md btn-outline mt-12 self-center"
+                            className="btn self-center"
                             onClick={handleDepositModal}
                             disabled={depositMutation?.isPending}
                         >
@@ -378,14 +355,14 @@ export function SukuraUi() {
                     </div>
                     {!depositMutation.isPending && (
                         <dialog id="deposit-modal" className="modal">
-                            <div className="modal-box text-gray-500">
+                            <div className="modal-box bg-base-300">
                                 <form method="dialog">
-                                    <button className="btn btn-sm btn-ghost absolute right-2 top-2">
-                                        ✕
+                                    <button className="btn btn-circle btn-ghost hover:bg-base-300 absolute right-2 top-2 text-red-500">
+                                        x
                                     </button>
                                 </form>
-                                <div className="my-8">
-                                    <h2 className="text-lg font-bold">
+                                <div className="mb-12">
+                                    <h2 className="text-lg font-bold mb-8">
                                         Important: Save Your Note!
                                     </h2>
                                     <p className="my-4">
@@ -412,7 +389,7 @@ export function SukuraUi() {
                                     <div className="flex">
                                         <input
                                             type="checkbox"
-                                            className="checkbox checkbox-base mr-4"
+                                            className="checkbox mr-4 rounded-[0]"
                                             id="deposit-checkbox"
                                             onChange={(e) => setIsNoteSaved(e.target.checked)}
                                         />
@@ -420,7 +397,11 @@ export function SukuraUi() {
                                             I have backed up my note safely
                                         </label>
                                     </div>
-                                    <Button onClick={handleDeposit} disabled={!isNoteSaved}>
+                                    <Button
+                                        className="btn-block my-4"
+                                        onClick={handleDeposit}
+                                        disabled={!isNoteSaved}
+                                    >
                                         Send Deposit
                                     </Button>
                                 </div>
@@ -431,61 +412,181 @@ export function SukuraUi() {
             )}
             {!isActiveTabDeposit && (
                 <div className="text-neutral-content bg-base-100 border-2 border-base-200 rounded-lg my-2 p-8 tab-body text-white">
-                    <div className="flex flex-col items-center text-center gap-12">
-                        <div className="flex flex-col items-start gap-2 w-full">
-                            <label htmlFor="file">Note</label>
-                            <input
-                                type="file"
-                                id="file"
-                                onChange={handleWithdrawalNoteUpload}
-                                className="file-input file-input-primary w-full"
-                                required
-                            />
+                    {!isNoteUploaded ? (
+                        <div className="flex flex-col items-center text-center gap-12">
+                            <div className="flex flex-col items-start gap-2 w-full">
+                                <label htmlFor="file">Select Note File</label>
+                                <div
+                                    className="flex flex-col items-center justify-center pt-5 pb-6 w-full border-2 border-dashed rounded-lg cursor-pointer"
+                                    onDragOver={(e) => e.preventDefault()}
+                                    onDrop={handleDrop}
+                                    onClick={() => document.getElementById('file')?.click()}
+                                >
+                                    <Image src={FileArrowUp} alt="drag adn drop arrow" />
+                                    <p className="my-2 text-sm">
+                                        drag and drop or select a note file you have backed up
+                                    </p>
+                                </div>
+                                <input
+                                    type="file"
+                                    id="file"
+                                    onChange={handleWithdrawalNoteUpload}
+                                    className="file-input file-input-primary w-full hidden"
+                                    required
+                                />
+                            </div>
+                            <div className="flex flex-col items-start gap-2 w-full">
+                                <label htmlFor="address">Recipient Address</label>
+                                <input
+                                    type="text"
+                                    id="address"
+                                    className="input input-primary w-full rounded-full"
+                                    onChange={handleRecipientAddressChange}
+                                    autoCorrect="off"
+                                    autoComplete="off"
+                                    spellCheck="false"
+                                    required
+                                />
+                            </div>
+                            <Button
+                                className=""
+                                onClick={handleProofGen}
+                                disabled={
+                                    withdrawMutation?.isPending ||
+                                    !withdrawalNoteData ||
+                                    !recipientAddress
+                                }
+                            >
+                                Withdraw
+                            </Button>
                         </div>
-                        <div className="flex flex-col items-start gap-2 w-full">
-                            <label htmlFor="address">Recipient Address</label>
-                            <input
-                                type="text"
-                                id="address"
-                                className="input input-primary w-full"
-                                onChange={handleRecipientAddressChange}
-                                autoCorrect="off"
-                                autoComplete="off"
-                                spellCheck="false"
-                                required
-                            />
+                    ) : (
+                        <div className="flex flex-col items-center text-center gap-12">
+                            <div className="flex flex-col items-start gap-2 w-full">
+                                <label>Select Note File</label>
+                                <div className="flex items-center justify-between py-5 px-3 w-full rounded-full bg-base-200 h-16">
+                                    <div className="flex items-center">
+                                        <Image src={FileArrowUp} alt="arrow up" className="mr-2" />
+                                        <span className="text-xs">{noteFileName}</span>
+                                    </div>
+                                    <div className="flex">
+                                        <button
+                                            className="btn bg-base-100 mr-2"
+                                            onClick={() => document.getElementById('file')?.click()}
+                                        >
+                                            Upload another
+                                        </button>
+                                        <Image
+                                            src={Trash}
+                                            alt="trash button"
+                                            className="cursor-pointer"
+                                            onClick={handleDeleteUploadedNote}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="w-full flex flex-col gap-2 mt-4 px-6">
+                                    <div className="w-full flex justify-between">
+                                        <span className="text-gray-400">Amount</span>
+                                        <span>{withdrawalNoteData?.amountPerWithdrawal} SOL</span>
+                                    </div>
+                                    <div className="w-full flex justify-between">
+                                        <span className="text-gray-400">Elapsed time</span>
+                                        <span>{1} hour</span>
+                                    </div>
+                                    <div className="w-full flex justify-between">
+                                        <span className="text-gray-400">Subsequent deposits</span>
+                                        <span>None</span>
+                                    </div>
+                                </div>
+                                <input
+                                    type="file"
+                                    id="file"
+                                    onChange={handleWithdrawalNoteUpload}
+                                    className="file-input file-input-primary w-full hidden"
+                                    required
+                                />
+                            </div>
+                            <div className="flex flex-col items-start gap-2 w-full">
+                                <div className="w-full relative">
+                                    <div className="flex flex-col items-start gap-2 w-full mb-4">
+                                        <label htmlFor="address">Recipient Address</label>
+                                        <input
+                                            type="text"
+                                            id="address"
+                                            className="input input-primary rounded-full w-full"
+                                            onChange={handleRecipientAddressChange}
+                                            autoCorrect="off"
+                                            autoComplete="off"
+                                            spellCheck="false"
+                                            required
+                                        />
+                                    </div>
+                                    <Image
+                                        src={X}
+                                        alt="x"
+                                        className="absolute right-0 top-[50%] -translate-x-[50%] -translate-y-[12.5%]"
+                                        onClick={handleRecipientAdrressDelete}
+                                    />
+                                </div>
+                                {recipientAddress && (
+                                    <>
+                                        <div className="w-full flex justify-between px-6">
+                                            <span className="text-gray-400">Fee</span>
+                                            <span>
+                                                {(
+                                                    (withdrawalNoteData?.amountPerWithdrawal as number) *
+                                                    0.01
+                                                ).toFixed(3)}{' '}
+                                                SOL
+                                            </span>
+                                        </div>
+                                        <div className="w-full flex justify-between px-6">
+                                            <span className="text-gray-400">
+                                                Recipient receives
+                                            </span>
+                                            <span>
+                                                {(
+                                                    (withdrawalNoteData?.amountPerWithdrawal as number) *
+                                                    0.99
+                                                ).toFixed(3)}{' '}
+                                                SOL
+                                            </span>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                            <Button
+                                className=""
+                                onClick={handleProofGen}
+                                disabled={
+                                    withdrawMutation?.isPending ||
+                                    !withdrawalNoteData ||
+                                    !recipientAddress
+                                }
+                            >
+                                Withdraw
+                            </Button>
                         </div>
-                        <Button
-                            className="btn lg:btn-md btn-outline btn-block"
-                            onClick={handleProofGen}
-                            disabled={
-                                withdrawMutation?.isPending ||
-                                !withdrawalNoteData ||
-                                !recipientAddress
-                            }
-                        >
-                            Withdraw
-                        </Button>
-                    </div>
-                    {!withdrawMutation.isPending && (
+                    )}
+                    {!withdrawMutation?.isPending && (
                         <dialog id="withdraw-modal" className="modal">
-                            <div className="modal-box">
+                            <div className="modal-box bg-base-300">
                                 <form method="dialog">
-                                    <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
-                                        ✕
+                                    <button className="btn btn-circle btn-ghost hover:bg-base-300 absolute right-2 top-2 text-red-500">
+                                        x
                                     </button>
                                 </form>
-                                <div className="p-4">
-                                    <h2 className="text-lg font-bold text-red-600">
+                                <div>
+                                    <h2 className="text-lg font-bold text-success">
                                         Valid Withdrawal Proof
                                     </h2>
-                                    <p className="mt-2 text-gray-700">
+                                    <p className="my-6 text-gray-400">
                                         Your withdrawal proof has been successfully confirmed.
                                     </p>
                                 </div>
                                 <div className="flex flex-col items-start gap-4">
                                     <Button
-                                        className="btn lg:btn-md btn-outline w-full"
+                                        className="btn lg:btn-md  w-full"
                                         onClick={handleWithdrawal}
                                         disabled={!isGenProof}
                                     >

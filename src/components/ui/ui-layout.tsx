@@ -10,6 +10,9 @@ import { ClusterUiSelect, ExplorerLink } from '../cluster/cluster-ui'
 import { WalletButton } from '../solana/solana-provider'
 import Loader from './loader'
 import SukuraLogo from '../../../public/SukuraLogo.svg'
+import ArrowUp from '../../../public/arrowup.svg'
+import '../../app/wallet.css'
+import { usePathname } from 'next/navigation'
 
 export function UiLayout({
     children,
@@ -18,19 +21,23 @@ export function UiLayout({
     children: ReactNode
     links: { label: string; path: string }[]
 }) {
+    const pathname = usePathname()
+
     return (
         <div className="h-full flex flex-col">
             <div className="navbar flex-col md:flex-row space-y-2 md:space-y-0">
                 <div className="flex-1">
-                    <Link className="btn btn-ghost normal-case text-xl" href="/">
+                    <Link className="normal-case text-3xl flex items-center gap-4" href="/">
                         <Image src={SukuraLogo} alt="Sukura Logo" />
-                        Sukura
+                        SUKURA
                     </Link>
                 </div>
-                <div className="flex-none space-x-2">
-                    <WalletButton />
-                    <ClusterUiSelect />
-                </div>
+                {pathname !== '/' && (
+                    <div className="flex-none space-x-2">
+                        <WalletButton />
+                        <ClusterUiSelect />
+                    </div>
+                )}
             </div>
             <div className="flex-grow mx-4 lg:mx-auto">
                 <Suspense
@@ -178,11 +185,72 @@ export function Button({
 }) {
     return (
         <button
-            className={`btn bg-gradient-primary text-white !px-6 ${className}`}
+            className={`btn bg-gradient-primary text-white btn-gradient-secondary inset-shadow-[0_0_10px_0_rgba(255, 255, 255, 0.65)] ${className}`}
             onClick={onClick}
             disabled={disabled}
         >
             {children}
         </button>
+    )
+}
+
+export function RangeSelector({
+    amountPerWithdrawal,
+    handleAmountChange,
+}: {
+    amountPerWithdrawal: number
+    handleAmountChange: (amountPerWithdrawal: number) => void
+}) {
+    const poolAmountList = [0.1, 1, 10, 100]
+
+    const handleRangeSelector = (index: number) => {
+        const rangeSelector = document.querySelector('.range-selector')
+        const prevButtons = document.querySelectorAll('.range-selector button')
+
+        if (rangeSelector) {
+            rangeSelector.style.setProperty('--onpointrx', `${index * 33.33333333}%`)
+
+            prevButtons.forEach((btn) => {
+                btn.style.backgroundColor = '#FFFFFF'
+            })
+
+            for (let i = 0; i < index; i++) {
+                prevButtons[i].style.backgroundColor = '#7AFB96'
+            }
+        }
+    }
+
+    return (
+        <div className="w-full">
+            <h1 className="text-xl mb-4">Amount to Deposit</h1>
+            <div className="w-full rounded-full bg-base-300 p-4">
+                <div className="range-selector flex justify-between h-[8px] w-full bg-base-200 rounded-full">
+                    {poolAmountList.map((amount: number, index: number) => (
+                        <button
+                            key={amount}
+                            aria-label="Radio"
+                            className={`cursor-pointer ${amountPerWithdrawal === amount ? 'range-btn-active' : ''}`}
+                            onClick={() => {
+                                handleAmountChange(amount)
+                                handleRangeSelector(index)
+                            }}
+                            id={`amount-${amount}`}
+                        ></button>
+                    ))}
+                </div>
+            </div>
+            <div className="w-full flex justify-between">
+                {poolAmountList.map((amount: number) => (
+                    <label
+                        key={amount}
+                        htmlFor={`amount-${amount}`}
+                        className="cursor-pointer flex flex-col items-center text-neutral text-xs"
+                    >
+                        <Image src={ArrowUp} alt="arrow up" width={8} />
+                        <p>{amount} SOL</p>
+                    </label>
+                ))}
+            </div>
+        </div>
     )
 }

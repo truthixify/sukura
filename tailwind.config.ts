@@ -14,16 +14,16 @@ const config: Config = {
         },
     },
   },
-  plugins: [require('daisyui')],
+  plugins: [require('daisyui'), require('flowbite')],
   daisyui: {
     themes: [
         {
             sukura: {
-                primary: "#7AFB96",
+                primary: "#292E43",
                 secondary: "#FFFFFF",
                 accent: "#FFFFFF",
                 neutral: "#FFFFFF",
-                "base-100": "000000",
+                "base-100": "#0B0D12",
                 "base-200": "#232837",
                 "base-300": "#292E43",
                 info: "#FFFFFF",

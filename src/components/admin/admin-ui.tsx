@@ -3,12 +3,10 @@
 import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js'
 import { useMemo, useState } from 'react'
 import { ExplorerLink } from '../cluster/cluster-ui'
-import { ellipsify } from '../ui/ui-layout'
+import { Button, ellipsify, RangeSelector } from '../ui/ui-layout'
 import { useSukuraProgram, useSukuraProgramAccount } from './admin-data-access'
 import { uint8ArrayToBigInt } from 'utils/utils'
 import { BN } from 'bn.js'
-
-export const poolAmountList = [0.1, 1, 10, 100]
 
 export function SukuraPoolCreate() {
     const { initializePool } = useSukuraProgram()
@@ -16,26 +14,18 @@ export function SukuraPoolCreate() {
 
     return (
         <div className="card-actions flex-col justify-evenly items-center">
-            <div className="flex space-x-4 my-8">
-                {poolAmountList.map((amount) => (
-                    <button
-                        key={amount}
-                        aria-label="Radio"
-                        className={`btn btn-xs lg:btn-md ${amountPerWithdrawal === amount ? 'btn-success' : 'btn-neutral'}`}
-                        onClick={() => setAmountPerWithdrawal(amount)}
-                    >
-                        {amount} SOL
-                    </button>
-                ))}
-            </div>
+            <RangeSelector
+                amountPerWithdrawal={amountPerWithdrawal as number}
+                handleAmountChange={setAmountPerWithdrawal}
+            />
             {initializePool.isPending && <progress className="progress w-1/2"></progress>}
-            <button
+            <Button
                 className="btn btn-small lg:btn-md btn-primary"
                 onClick={() => initializePool.mutateAsync(amountPerWithdrawal)}
                 disabled={initializePool.isPending || !amountPerWithdrawal}
             >
                 Create Pool {initializePool.isPending && '...'}
-            </button>
+            </Button>
         </div>
     )
 }
@@ -100,7 +90,7 @@ function SukuraPoolCard({ account }: { account: PublicKey }) {
         <span className="loading loading-spinner loading-lg"></span>
     ) : (
         <>
-            <div className="card card-bordered border-base-300 border-4 text-neutral-content">
+            <div className="card card-bordered border-base-300 border-4 text-neutral-content bg-gradient-primary">
                 <div className="card-body items-start">
                     <div className="space-y-6">
                         <h2

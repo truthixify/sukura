@@ -40,6 +40,12 @@ body {
     padding-right: 48px !important;
 }
 
+.close-modal{
+    width: 20px !important;
+    height: 20px !important;
+    border-radius: 50% !important;
+}
+
 .range-selector button {
     width: 12px !important;
     height: 12px !important;
@@ -47,7 +53,7 @@ body {
     background-color: #fff;
     position: relative;
     z-index: 100;
-    margin-top: -3px;
+    margin-top: -2px;
 }
 
 .range-selector {
@@ -63,7 +69,6 @@ body {
     top: 0;
     left: 0;
     background-color: #7AFB96;
-    /* transform: translateX(var(--onpointrx)); */
     transition: all 0.3s ease-in-out;
     border-radius: inherit;
 }

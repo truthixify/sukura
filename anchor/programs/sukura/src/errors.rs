@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 
 #[error_code]
 pub enum SukuraError {
-    #[msg("Commitment already exists in the Merkle Tree")]
+    #[msg("Commitment already exists in the merkle tree")]
     CommitmentAlreadyExists,
 
     #[msg("Nullifier has already been used")]
