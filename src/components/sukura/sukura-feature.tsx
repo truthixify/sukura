@@ -10,7 +10,7 @@ export default function SukuraFeature() {
     const { publicKey } = useWallet()
 
     return publicKey ? (
-        <div className="w-full h-full flex justify-center items-center">
+        <div className="w-full h-full flex justify-center items-center relative">
             {/* <AppHero title="Sukura" subtitle={''}></AppHero> */}
             <SukuraUi />
         </div>

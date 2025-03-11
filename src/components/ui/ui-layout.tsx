@@ -25,7 +25,7 @@ export function UiLayout({
 
     return (
         <div className="h-full flex flex-col">
-            <div className="navbar flex-col md:flex-row space-y-2 md:space-y-0">
+            <div className="navbar space-y-2 md:space-y-0 sm:px-12 sm:py-12 px-3 py-3">
                 <div className="flex-1">
                     <Link className="normal-case text-3xl flex items-center gap-4" href="/">
                         <Image src={SukuraLogo} alt="Sukura Logo" />
@@ -42,8 +42,8 @@ export function UiLayout({
             <div className="flex-grow mx-4 lg:mx-auto">
                 <Suspense
                     fallback={
-                        <div className="text-center my-32">
-                            <Loader />
+                        <div className="text-center flex items-center justify-center">
+                            <Spinner />
                         </div>
                     }
                 >
@@ -185,7 +185,7 @@ export function Button({
 }) {
     return (
         <button
-            className={`btn bg-gradient-primary text-white btn-gradient-secondary inset-shadow-[0_0_10px_0_rgba(255, 255, 255, 0.65)] ${className}`}
+            className={`btn bg-gradient-primary text-white btn-gradient-secondary btn-shadow ${className}`}
             onClick={onClick}
             disabled={disabled}
         >
@@ -251,6 +251,57 @@ export function RangeSelector({
                     </label>
                 ))}
             </div>
+        </div>
+    )
+}
+
+export function Spinner({ text, overlay = false }: { text?: string; overlay?: boolean }) {
+    const defaultColor = '#D9D9D9'
+    const activeColor = '#2D2D2D'
+
+    const [activeIndex, setActiveIndex] = React.useState(0)
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setActiveIndex((prev) => (prev + 1) % 8)
+        }, 200)
+
+        return () => clearInterval(interval)
+    }, [])
+
+    return (
+        <div
+            className={`flex flex-col items-center ${overlay && 'absolute w-screen h-screen -top-48 flex flex-col items-center justify-center backdrop-blur-sm overflow-hidden'}`}
+        >
+            <svg
+                className="w-12 h-12"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 48 48"
+                fill="none"
+            >
+                {[
+                    { x: 22, y: 0, rotate: 0 },
+                    { x: 33.9, y: 16.9, rotate: -135 },
+                    { x: 36, y: 26, rotate: -90 },
+                    { x: 31.1, y: 33.9, rotate: -45 },
+                    { x: 22, y: 36, rotate: 0 },
+                    { x: 8.4, y: 42.3, rotate: -135 },
+                    { x: 0, y: 26, rotate: -90 },
+                    { x: 5.6, y: 8.4, rotate: -45 },
+                ].map((rect, index) => (
+                    <rect
+                        key={index}
+                        x={rect.x}
+                        y={rect.y}
+                        width="4"
+                        height="12"
+                        rx="2"
+                        fill={index === activeIndex ? activeColor : defaultColor}
+                        transform={`rotate(${rect.rotate} ${rect.x} ${rect.y})`}
+                    />
+                ))}
+            </svg>
+            <p className="text-xl mt-6">{text}</p>
         </div>
     )
 }

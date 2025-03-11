@@ -58,7 +58,7 @@ export function ClusterChecker({ children }: { children: ReactNode }) {
 export function ClusterUiSelect() {
     const { clusters, setCluster, cluster } = useCluster()
     return (
-        <div className="dropdown dropdown-end">
+        <div className="dropdown dropdown-end hidden sm:block">
             <label tabIndex={0} className="btn bg-white hover:bg-white rounded-btn text-black">
                 {cluster.name}
             </label>

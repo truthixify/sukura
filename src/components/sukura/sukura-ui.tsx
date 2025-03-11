@@ -1,9 +1,8 @@
 'use client'
 
 import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js'
-import React, { useEffect, useMemo, useState } from 'react'
-import { ExplorerLink } from '../cluster/cluster-ui'
-import { Button, ellipsify, RangeSelector } from '../ui/ui-layout'
+import React, { useState } from 'react'
+import { Button, RangeSelector, Spinner } from '../ui/ui-layout'
 import { useSukuraProgram, useSukuraProgramAccount } from './sukura-data-access'
 import {
     bigintToUint8Array,
@@ -55,6 +54,7 @@ export function SukuraUi() {
                     account.account.amountPerWithdrawal.toNumber() === 0.1 * LAMPORTS_PER_SOL
             )?.publicKey || defaultPublicKey
     )
+    const [processUploadedNote, setProcessUploadedNote] = useState(false)
 
     const { accountQuery, depositMutation, withdrawMutation } = useSukuraProgramAccount({
         account,
@@ -168,8 +168,9 @@ export function SukuraUi() {
                 parsedData
                 setWithdrawalNoteData(parsedData)
 
-                // setTimeout(() => setIsNoteUploaded(true), 5000)
                 setIsNoteUploaded(true)
+                setProcessUploadedNote(true)
+                setTimeout(() => setProcessUploadedNote(false), 2000)
             } catch (err) {
                 toast.error('Invalid file format. Please upload a valid JSON file.')
             }
@@ -188,8 +189,9 @@ export function SukuraUi() {
                 parsedData
                 setWithdrawalNoteData(parsedData)
 
-                // setTimeout(() => setIsNoteUploaded(true), 5000)
                 setIsNoteUploaded(true)
+                setProcessUploadedNote(true)
+                setTimeout(() => setProcessUploadedNote(false), 2000)
             } catch (err) {
                 toast.error('Invalid file format. Please upload a valid JSON file.')
             }
@@ -312,15 +314,19 @@ export function SukuraUi() {
         )
     }
 
-    // if(isGenProof) {
-    //     return <span className="loading loading-spinner loading-lg"></span>
-    // }
+    if (processUploadedNote) {
+        return <Spinner text="Uploading note" overlay={true} />
+    }
 
-    return false /*accountQuery.isLoading*/ ? (
-        <span className="loading loading-spinner loading-lg"></span>
+    if (isGenProof) {
+        return <Spinner text="Generating withdrawal proof" overlay={true} />
+    }
+
+    return accountQuery.isLoading ? (
+        <Spinner text="Loading pool accounts" />
     ) : (
-        <div className=" min-w-[800px]">
-            <div className="tab-header flex justify-between items-center h-12 w-2/5 bg-base-300 rounded-full py-2 px-2">
+        <div className="md:min-w-[700px] w-full absolute top-[10vh]">
+            <div className="tab-header flex justify-between items-center h-12 sm:w-2/5 w-full bg-base-300 rounded-full py-2 px-2">
                 <button
                     className={`w-1/2 h-10 btn btn-xs hover:bg-base-200 ${isActiveTabDeposit ? 'bg-base-200 text-white' : 'bg-base-300 border-none'}`}
                     onClick={() => setIsActiveTabDeposit(true)}
@@ -450,7 +456,6 @@ export function SukuraUi() {
                             </div>
                             <Button
                                 className=""
-                                onClick={handleProofGen}
                                 disabled={
                                     withdrawMutation?.isPending ||
                                     !withdrawalNoteData ||
@@ -464,10 +469,12 @@ export function SukuraUi() {
                         <div className="flex flex-col items-center text-center gap-12">
                             <div className="flex flex-col items-start gap-2 w-full">
                                 <label>Select Note File</label>
-                                <div className="flex items-center justify-between py-5 px-3 w-full rounded-full bg-base-200 h-16">
+                                <div className="flex items-center justify-between py-5 px-4 w-full rounded-full bg-base-200 h-16">
                                     <div className="flex items-center">
                                         <Image src={FileArrowUp} alt="arrow up" className="mr-2" />
-                                        <span className="text-xs">{noteFileName}</span>
+                                        <span className="text-xs hidden sm:block">
+                                            {noteFileName}
+                                        </span>
                                     </div>
                                     <div className="flex">
                                         <button
@@ -487,15 +494,17 @@ export function SukuraUi() {
                                 <div className="w-full flex flex-col gap-2 mt-4 px-6">
                                     <div className="w-full flex justify-between">
                                         <span className="text-gray-400">Amount</span>
-                                        <span>{withdrawalNoteData?.amountPerWithdrawal} SOL</span>
+                                        <span className="font-semibold">
+                                            {withdrawalNoteData?.amountPerWithdrawal} SOL
+                                        </span>
                                     </div>
                                     <div className="w-full flex justify-between">
                                         <span className="text-gray-400">Elapsed time</span>
-                                        <span>{1} hour</span>
+                                        <span className="font-semibold">{1} hour</span>
                                     </div>
                                     <div className="w-full flex justify-between">
                                         <span className="text-gray-400">Subsequent deposits</span>
-                                        <span>None</span>
+                                        <span className="font-semibold">None</span>
                                     </div>
                                 </div>
                                 <input
@@ -532,7 +541,7 @@ export function SukuraUi() {
                                     <>
                                         <div className="w-full flex justify-between px-6">
                                             <span className="text-gray-400">Fee</span>
-                                            <span>
+                                            <span className="font-semibold">
                                                 {(
                                                     (withdrawalNoteData?.amountPerWithdrawal as number) *
                                                     0.01
@@ -544,7 +553,7 @@ export function SukuraUi() {
                                             <span className="text-gray-400">
                                                 Recipient receives
                                             </span>
-                                            <span>
+                                            <span className="font-semibold">
                                                 {(
                                                     (withdrawalNoteData?.amountPerWithdrawal as number) *
                                                     0.99
@@ -568,16 +577,16 @@ export function SukuraUi() {
                             </Button>
                         </div>
                     )}
-                    {!withdrawMutation?.isPending && (
+                    {!withdrawMutation?.isPending && isGenProof && (
                         <dialog id="withdraw-modal" className="modal">
                             <div className="modal-box bg-base-300">
                                 <form method="dialog">
-                                    <button className="btn btn-circle btn-ghost hover:bg-base-300 absolute right-2 top-2 text-red-500">
+                                    <button className="btn btn-circle btn-ghost hover:bg-base-300 absolute right-0 top-2 text-red-500">
                                         x
                                     </button>
                                 </form>
                                 <div>
-                                    <h2 className="text-lg font-bold text-success">
+                                    <h2 className="text-lg font-bold text-white">
                                         Valid Withdrawal Proof
                                     </h2>
                                     <p className="my-6 text-gray-400">

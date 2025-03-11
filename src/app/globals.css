@@ -40,6 +40,10 @@ body {
     padding-right: 48px !important;
 }
 
+.btn-shadow {
+    box-shadow: inset 0 0 10px 0 rgba(255, 255, 255, 0.65);
+}
+
 .close-modal{
     width: 20px !important;
     height: 20px !important;
