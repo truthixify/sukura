@@ -17,6 +17,10 @@
     box-shadow: inset 0 0 10px 0 rgba(255, 255, 255, 0.65) !important;
 }
 
+.wallet-adapter-modal-list .wallet-adapter-button {
+    box-shadow: none !important;
+}
+
 .wallet-adapter-button-trigger {
     background: linear-gradient(45deg, #42B3FF, #7852F3) !important;
 }
@@ -198,11 +202,12 @@
     flex-direction: column;
     z-index: 1050;
     max-width: 400px;
-    border-radius: 10px;
+    border-radius: 16px;
     background: #10141f;
     box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.6);
     font-family: 'DM Sans', 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif;
     flex: 1;
+    background: #292E43 !important;
 }
 
 .wallet-adapter-modal-wrapper .wallet-adapter-button {

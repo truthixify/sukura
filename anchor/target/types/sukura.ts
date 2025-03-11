@@ -65,6 +65,7 @@ export type Sukura = {
                     name: 'authority'
                     writable: true
                     signer: true
+                    address: '3pzgiv8AQotxN6UVCVv9zVQ2qsf4Dx3LZY6ixZGau9M7'
                 },
                 {
                     name: 'pool'
@@ -235,7 +236,7 @@ export type Sukura = {
         {
             code: 6000
             name: 'commitmentAlreadyExists'
-            msg: 'Commitment already exists in the Merkle Tree'
+            msg: 'Commitment already exists in the merkle tree'
         },
         {
             code: 6001

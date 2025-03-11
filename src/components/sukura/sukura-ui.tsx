@@ -25,10 +25,12 @@ import Image from 'next/image'
 import FileArrowUp from '../../../public/FileArrowUp.svg'
 import Trash from '../../../public/Trash.svg'
 import X from '../../../public/X.svg'
+import CancelBtn from '../../../public/cancel.svg'
+import { fetchDepositEvent } from '@/utils/getDepositTimestamp'
 
 export function SukuraUi() {
     const defaultPublicKey = new PublicKey('11111111111111111111111111111111')
-    const { accounts, getProgramAccount } = useSukuraProgram()
+    const { accounts, getProgramAccount, programId } = useSukuraProgram()
 
     const [amountPerWithdrawal, setAmountPerWithdrawal] = useState<number>(0.1)
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -171,6 +173,13 @@ export function SukuraUi() {
                 setIsNoteUploaded(true)
                 setProcessUploadedNote(true)
                 setTimeout(() => setProcessUploadedNote(false), 2000)
+
+                // try {
+                //     const log = await fetchDepositEvent(parsedData.commitment, programId)
+                //     console.log(log)
+                // } catch (err) {
+                //     console.log(err)
+                // }
             } catch (err) {
                 toast.error('Invalid file format. Please upload a valid JSON file.')
             }
@@ -300,7 +309,7 @@ export function SukuraUi() {
     }
 
     if (getProgramAccount.isLoading) {
-        return <span className="loading loading-spinner loading-lg"></span>
+        return <Spinner text="Loading mixer" overlay={true}/>
     }
 
     if (!getProgramAccount.data?.value) {
@@ -314,27 +323,23 @@ export function SukuraUi() {
         )
     }
 
-    if (processUploadedNote) {
-        return <Spinner text="Uploading note" overlay={true} />
-    }
-
     if (isGenProof) {
         return <Spinner text="Generating withdrawal proof" overlay={true} />
     }
 
-    return accountQuery.isLoading ? (
-        <Spinner text="Loading pool accounts" />
+    return false /*accountQuery.isLoading*/ ? (
+        <Spinner text="Getting pools ready" />
     ) : (
         <div className="md:min-w-[700px] w-full absolute top-[10vh]">
             <div className="tab-header flex justify-between items-center h-12 sm:w-2/5 w-full bg-base-300 rounded-full py-2 px-2">
                 <button
-                    className={`w-1/2 h-10 btn btn-xs hover:bg-base-200 ${isActiveTabDeposit ? 'bg-base-200 text-white' : 'bg-base-300 border-none'}`}
+                    className={`w-1/2 h-10 btn btn-xs hover:bg-primary ${isActiveTabDeposit ? 'bg-primary text-white' : 'bg-base-300 border-none'}`}
                     onClick={() => setIsActiveTabDeposit(true)}
                 >
                     Deposit
                 </button>
                 <button
-                    className={`w-1/2 h-10 btn btn-xs hover:bg-base-200 ${!isActiveTabDeposit ? 'bg-base-200 text-white' : 'bg-base-300 border-none'}`}
+                    className={`w-1/2 h-10 btn btn-xs hover:bg-primary ${!isActiveTabDeposit ? 'bg-primary text-white' : 'bg-base-300 border-none'}`}
                     onClick={() => setIsActiveTabDeposit(false)}
                 >
                     Withdraw
@@ -362,11 +367,14 @@ export function SukuraUi() {
                     {!depositMutation.isPending && (
                         <dialog id="deposit-modal" className="modal">
                             <div className="modal-box bg-base-300">
-                                <form method="dialog">
-                                    <button className="btn btn-circle btn-ghost hover:bg-base-300 absolute right-2 top-2 text-red-500">
-                                        x
-                                    </button>
-                                </form>
+                                <div
+                                    className="w-[32px] h-[32px] rounded-[50%] cursor-pointer bg-base-200 flex items-center justify-center absolute top-4 right-2"
+                                    onClick={() =>
+                                        document.getElementById('deposit-modal')?.close()
+                                    }
+                                >
+                                    <Image src={CancelBtn} alt="close modal button" />
+                                </div>
                                 <div className="mb-12">
                                     <h2 className="text-lg font-bold mb-8">
                                         Important: Save Your Note!
@@ -446,7 +454,7 @@ export function SukuraUi() {
                                 <input
                                     type="text"
                                     id="address"
-                                    className="input input-primary w-full rounded-full"
+                                    className="input bg-base-200 w-full rounded-full"
                                     onChange={handleRecipientAddressChange}
                                     autoCorrect="off"
                                     autoComplete="off"
@@ -470,15 +478,19 @@ export function SukuraUi() {
                             <div className="flex flex-col items-start gap-2 w-full">
                                 <label>Select Note File</label>
                                 <div className="flex items-center justify-between py-5 px-4 w-full rounded-full bg-base-200 h-16">
-                                    <div className="flex items-center">
-                                        <Image src={FileArrowUp} alt="arrow up" className="mr-2" />
-                                        <span className="text-xs hidden sm:block">
-                                            {noteFileName}
+                                    <div className="flex items-center overflow-hidden">
+                                        <Image
+                                            src={FileArrowUp}
+                                            alt="arrow up"
+                                            className="w-6 sm:w-8 mr-2"
+                                        />
+                                        <span className="text-xs sm:text-lg">
+                                            {noteFileName.slice(-15)}
                                         </span>
                                     </div>
                                     <div className="flex">
                                         <button
-                                            className="btn bg-base-100 mr-2"
+                                            className="btn border-[#6875A9] text-[#6875A9] mr-2 text-xs sm:text-md btn-xs sm:btn-md"
                                             onClick={() => document.getElementById('file')?.click()}
                                         >
                                             Upload another
@@ -486,7 +498,7 @@ export function SukuraUi() {
                                         <Image
                                             src={Trash}
                                             alt="trash button"
-                                            className="cursor-pointer"
+                                            className="cursor-pointer w-6 sm:w-8"
                                             onClick={handleDeleteUploadedNote}
                                         />
                                     </div>
@@ -498,14 +510,16 @@ export function SukuraUi() {
                                             {withdrawalNoteData?.amountPerWithdrawal} SOL
                                         </span>
                                     </div>
-                                    <div className="w-full flex justify-between">
+
+                                    {/* additional deposit details */}
+                                    {/* <div className="w-full flex justify-between">
                                         <span className="text-gray-400">Elapsed time</span>
                                         <span className="font-semibold">{1} hour</span>
                                     </div>
                                     <div className="w-full flex justify-between">
                                         <span className="text-gray-400">Subsequent deposits</span>
                                         <span className="font-semibold">None</span>
-                                    </div>
+                                    </div> */}
                                 </div>
                                 <input
                                     type="file"
@@ -522,7 +536,7 @@ export function SukuraUi() {
                                         <input
                                             type="text"
                                             id="address"
-                                            className="input input-primary rounded-full w-full"
+                                            className="input bg-base-200 rounded-full w-full"
                                             onChange={handleRecipientAddressChange}
                                             autoCorrect="off"
                                             autoComplete="off"
@@ -580,11 +594,14 @@ export function SukuraUi() {
                     {!withdrawMutation?.isPending && isGenProof && (
                         <dialog id="withdraw-modal" className="modal">
                             <div className="modal-box bg-base-300">
-                                <form method="dialog">
-                                    <button className="btn btn-circle btn-ghost hover:bg-base-300 absolute right-0 top-2 text-red-500">
-                                        x
-                                    </button>
-                                </form>
+                                <div
+                                    className="w-[32px] h-[32px] rounded-[50%] cursor-pointer bg-base-200 flex items-center justify-center absolute top-4 right-2"
+                                    onClick={() =>
+                                        document.getElementById('withdraw-modal')?.close()
+                                    }
+                                >
+                                    <Image src={CancelBtn} alt="close modal button" />
+                                </div>
                                 <div>
                                     <h2 className="text-lg font-bold text-white">
                                         Valid Withdrawal Proof
@@ -607,6 +624,7 @@ export function SukuraUi() {
                     )}
                 </div>
             )}
+            {processUploadedNote && <Spinner text="Uploading note" overlay={true} />}
         </div>
     )
 }

@@ -3,7 +3,7 @@ import { Connection } from '@solana/web3.js'
 export const confirmTransaction = async (
     connection: Connection,
     signature: string,
-    maxRetries = 5,
+    maxRetries = 10,
     delay = 500
 ) => {
     for (let i = 0; i < maxRetries; i++) {

@@ -2,6 +2,8 @@ use crate::merkle_tree::MerkleTreeWithHistory;
 use crate::state::Sukura;
 use anchor_lang::prelude::*;
 
+const HARDCODED_PUBKEY: Pubkey = pubkey!("3pzgiv8AQotxN6UVCVv9zVQ2qsf4Dx3LZY6ixZGau9M7");
+
 pub fn initialize_pool(
     ctx: Context<InitializePool>,
     levels: u32,
@@ -33,6 +35,7 @@ pub fn initialize_pool(
 #[instruction(levels: u32, amount_per_withdrawal: u64, nonce: u8)]
 pub struct InitializePool<'info> {
     #[account(mut)]
+    #[account(address = HARDCODED_PUBKEY)]
     authority: Signer<'info>,
     #[account(
         init,

@@ -1,16 +1,35 @@
 'use client'
 
 import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ExplorerLink } from '../cluster/cluster-ui'
-import { Button, ellipsify, RangeSelector } from '../ui/ui-layout'
+import { Button, ellipsify, RangeSelector, Spinner } from '../ui/ui-layout'
 import { useSukuraProgram, useSukuraProgramAccount } from './admin-data-access'
 import { uint8ArrayToBigInt } from 'utils/utils'
 import { BN } from 'bn.js'
 
 export function SukuraPoolCreate() {
-    const { initializePool } = useSukuraProgram()
+    const { initializePool, accounts } = useSukuraProgram()
     const [amountPerWithdrawal, setAmountPerWithdrawal] = useState<number | null>(null)
+    const [existingPools, setExistingPools] = useState<number[]>([])
+
+    useEffect(() => {
+        if (!accounts.data) return
+
+        const foundPools = [0.1, 1, 10, 100].filter((amount) => {
+            const account = accounts.data.some(
+                (account) =>
+                    account.account.amountPerWithdrawal.toNumber() === amount * LAMPORTS_PER_SOL
+            )
+        })
+
+        setExistingPools(foundPools)
+    }, [accounts.data])
+    const poolExists = amountPerWithdrawal !== null && existingPools.includes(amountPerWithdrawal)
+
+    if (initializePool.isPending) {
+        return <Spinner overlay={true} />
+    }
 
     return (
         <div className="card-actions flex-col justify-evenly items-center">
@@ -22,7 +41,7 @@ export function SukuraPoolCreate() {
             <Button
                 className="btn btn-small lg:btn-md btn-primary"
                 onClick={() => initializePool.mutateAsync(amountPerWithdrawal)}
-                disabled={initializePool.isPending || !amountPerWithdrawal}
+                disabled={initializePool.isPending || !amountPerWithdrawal || poolExists}
             >
                 Create Pool {initializePool.isPending && '...'}
             </Button>
@@ -34,7 +53,7 @@ export function SukuraPoolList() {
     const { accounts, getProgramAccount } = useSukuraProgram()
 
     if (getProgramAccount.isLoading) {
-        return <span className="loading loading-spinner loading-lg"></span>
+        return <Spinner />
     }
 
     if (!getProgramAccount.data?.value) {
@@ -52,7 +71,7 @@ export function SukuraPoolList() {
         <div className="space-y-6">
             <h1>Active Pool List</h1>
             {accounts.isLoading ? (
-                <span className="text-center loading loading-spinner loading-lg"></span>
+                <Spinner />
             ) : accounts.data?.length ? (
                 <div className="grid md:grid-cols-1 gap-4">
                     {accounts.data?.map((account) => (
@@ -87,7 +106,7 @@ function SukuraPoolCard({ account }: { account: PublicKey }) {
     const vault = useMemo(() => accountQuery.data?.vault ?? '', [accountQuery.data?.vault])
 
     return accountQuery.isLoading ? (
-        <span className="loading loading-spinner loading-lg"></span>
+        <Spinner />
     ) : (
         <>
             <div className="card card-bordered border-base-300 border-4 text-neutral-content bg-gradient-primary">

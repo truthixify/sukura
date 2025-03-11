@@ -36,12 +36,12 @@ const config: Config = {
     themes: [
         {
             sukura: {
-                primary: "#292E43",
+                primary: "#11192F",
                 secondary: "#FFFFFF",
                 accent: "#FFFFFF",
                 neutral: "#FFFFFF",
                 "base-100": "#0B0D12",
-                "base-200": "#232837",
+                "base-200": "#181920",
                 "base-300": "#292E43",
                 info: "#FFFFFF",
                 success: "#7AFB96",
