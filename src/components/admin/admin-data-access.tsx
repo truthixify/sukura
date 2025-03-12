@@ -59,7 +59,6 @@ export function useSukuraProgram() {
                 .initializePool(levels, amountPerWithdrawal, nonce)
                 .accounts({
                     pool: pool.publicKey,
-                    authority: provider.publicKey,
                 })
                 .instruction()
             const { blockhash } = await connection.getLatestBlockhash()
@@ -86,18 +85,18 @@ export function useSukuraProgram() {
 
             await confirmTransaction(connection, signature)
 
-            // await fetch('/api/merkleTree', {
-            //     method: 'POST',
-            //     headers: {
-            //         'Content-Type': 'application/json',
-            //     },
-            //     body: JSON.stringify({
-            //         poolAddress: pool.publicKey.toString(),
-            //         levels: 28,
-            //         amountPerWithdrawal: amountPerWithdrawal.toNumber(),
-            //         vaultAddress: vault.toString(),
-            //     }),
-            // })
+            await fetch('/api/merkleTree', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    poolAddress: pool.publicKey.toString(),
+                    levels: 28,
+                    amountPerWithdrawal: amountPerWithdrawal.toNumber(),
+                    vaultAddress: vault.toString(),
+                }),
+            })
 
             return signature
         },

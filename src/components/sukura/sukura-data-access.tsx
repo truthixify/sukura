@@ -4,7 +4,6 @@ import { getSukuraProgram, getSukuraProgramId } from '@project/anchor'
 import { useConnection } from '@solana/wallet-adapter-react'
 import {
     Cluster,
-    LAMPORTS_PER_SOL,
     PublicKey,
     SystemProgram,
     TransactionMessage,
@@ -17,21 +16,11 @@ import { useCluster } from '../cluster/cluster-data-access'
 import { useAnchorProvider } from '../solana/solana-provider'
 import { useTransactionToast } from '../ui/ui-layout'
 import BN from 'bn.js'
-import {
-    generateDeposit,
-    bigintToUint8Array,
-    generateWitnessAndProve,
-    parseProofToBytesArray,
-    parseToBytesArray,
-    solanaAddressToBigInt,
-    NoteData,
-    createPoseidonHash,
-} from '../../../utils/utils'
-import MerkleTree from 'fixed-merkle-tree'
-import { getOrCreateRelayerWallet, signTransactinWithRelayer } from '../../../utils/relayer'
+import { bigintToUint8Array, parseProofToBytesArray, parseToBytesArray } from '../../../utils/utils'
+import { signTransactinWithRelayer } from '../../../utils/relayer'
 import { getComputeUnitsIx } from '../../utils/computeUnit'
-import { IMerkleTree } from '@/app/api/merkleTree/model'
 import { confirmTransaction } from '@/utils/txConfirmationRetry'
+import { handleAnchorError } from '@/utils/handleAnchorError'
 
 const levels = 28
 const amountPerWithdrawal = new BN(1_000_000)
@@ -66,7 +55,7 @@ export function useSukuraProgram() {
 export function useSukuraProgramAccount({ account }: { account: PublicKey }) {
     const { cluster } = useCluster()
     const transactionToast = useTransactionToast()
-    const { program, accounts } = useSukuraProgram()
+    const { program, accounts, programId } = useSukuraProgram()
 
     const accountQuery = useQuery({
         queryKey: ['sukura', 'fetch', { cluster, account }],
@@ -79,12 +68,19 @@ export function useSukuraProgramAccount({ account }: { account: PublicKey }) {
         mutationKey: ['sukura', 'deposit', { cluster, account }],
         mutationFn: async (commitment: string) => {
             const commitmentArr = Array.from(bigintToUint8Array(BigInt(commitment)))
+            const [vaultAddress, nonce] = PublicKey.findProgramAddressSync(
+                [account.toBuffer()],
+                programId
+            )
 
             const txIns = await program.methods
                 .deposit(commitmentArr)
-                .accounts({
+                .accountsStrict({
                     pool: account,
                     sender: provider.publicKey,
+                    vault: vaultAddress,
+                    poolSigner: vaultAddress,
+                    systemProgram: SystemProgram.programId,
                 })
                 .instruction()
             const { blockhash } = await connection.getLatestBlockhash()
@@ -139,6 +135,7 @@ export function useSukuraProgramAccount({ account }: { account: PublicKey }) {
             fee,
             recipientAddress,
             relayerWallet,
+            vaultAddress,
         }: {
             nullifierHash: string
             root: string
@@ -147,6 +144,7 @@ export function useSukuraProgramAccount({ account }: { account: PublicKey }) {
             fee: BN
             recipientAddress: PublicKey
             relayerWallet: PublicKey
+            vaultAddress: PublicKey
         }) => {
             const proofArray = parseProofToBytesArray(proof)
             const publicSignalsArray = parseToBytesArray(publicSignals)
@@ -156,9 +154,12 @@ export function useSukuraProgramAccount({ account }: { account: PublicKey }) {
 
             const instruction = await program.methods
                 .withdraw(nullifierHashArr, rootArr, proofInstruction, fee)
-                .accounts({
+                .accountsStrict({
                     recipient: recipientAddress,
                     pool: account,
+                    vault: vaultAddress,
+                    poolSigner: vaultAddress,
+                    systemProgram: SystemProgram.programId,
                 })
                 .instruction()
             const { blockhash } = await connection.getLatestBlockhash()
@@ -170,7 +171,13 @@ export function useSukuraProgramAccount({ account }: { account: PublicKey }) {
             const transaction = new VersionedTransaction(messageV0)
             const serializedMessage = Buffer.from(transaction.serialize()).toString('base64')
 
-            const signature = await signTransactinWithRelayer(serializedMessage)
+            let signature
+            try {
+                signature = await signTransactinWithRelayer(serializedMessage)
+            } catch (err) {
+                const errorMessage = handleAnchorError(err)
+                throw new Error(errorMessage)
+            }
 
             return signature as string
         },
@@ -178,7 +185,8 @@ export function useSukuraProgramAccount({ account }: { account: PublicKey }) {
             transactionToast(tx)
             return accountQuery.refetch()
         },
-        onError: (err) => toast.error(`Failed to withdraw: ${err}`),
+        onError: (err) =>
+            toast.error(`Failed to withdraw: ${err.message.replace(/Error:\s*/g, '')}`),
     })
 
     return {

@@ -43,7 +43,7 @@ export function UiLayout({
                 <Suspense
                     fallback={
                         <div className="text-center flex items-center justify-center">
-                            <Spinner text="Loading mixer" overlay={true}/>
+                            <Spinner text="Loading mixer" overlay={true} />
                         </div>
                     }
                 >
@@ -271,7 +271,7 @@ export function Spinner({ text, overlay = false }: { text?: string; overlay?: bo
 
     return (
         <div
-            className={`flex flex-col items-center ${overlay && 'fixed top-0 w-screen h-screen flex flex-col items-center justify-center backdrop-blur-sm overflow-hidden'}`}
+            className={`flex flex-col items-center ${overlay && 'fixed top-0 left-0 w-screen h-screen flex flex-col items-center justify-center backdrop-blur-sm overflow-hidden'}`}
         >
             <svg
                 className="w-12 h-12"

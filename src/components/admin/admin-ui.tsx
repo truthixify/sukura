@@ -106,7 +106,7 @@ function SukuraPoolCard({ account }: { account: PublicKey }) {
     const vault = useMemo(() => accountQuery.data?.vault ?? '', [accountQuery.data?.vault])
 
     return accountQuery.isLoading ? (
-        <Spinner />
+        <Spinner overlay={true} />
     ) : (
         <>
             <div className="card card-bordered border-base-300 border-4 text-neutral-content bg-gradient-primary">

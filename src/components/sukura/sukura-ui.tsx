@@ -1,18 +1,15 @@
 'use client'
 
 import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js'
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { Button, RangeSelector, Spinner } from '../ui/ui-layout'
 import { useSukuraProgram, useSukuraProgramAccount } from './sukura-data-access'
 import {
-    bigintToUint8Array,
     createPoseidonHash,
     generateDeposit,
     generateWitnessAndProve,
     handleNoteUpload,
     NoteData,
-    parseProofToBytesArray,
-    parseToBytesArray,
     solanaAddressToBigInt,
 } from 'utils/utils'
 import toast from 'react-hot-toast'
@@ -43,12 +40,15 @@ export function SukuraUi() {
     const [noteFileName, setNoteFileName] = useState<string>('')
     const [isNoteUploaded, setIsNoteUploaded] = useState<boolean>(false)
     const [isGenProof, setIsGenProof] = useState<boolean>(false)
+    const [isProofValid, setIsProofValid] = useState<boolean>(false)
+    const [isWithdrawing, setIsWithdrawing] = useState<boolean>(false)
     const [proof, setProof] = useState<Groth16Proof | null>(null)
     const [publicSignals, setPublicSignals] = useState<PublicSignals | null>(null)
     const [withdrawalRoot, setWithdrawalRoot] = useState<string>('')
     const [withdrawalNullifierHash, setWithdrawalNullifierHash] = useState<string>('')
     const [withdrawalFee, setWithdrawalFee] = useState<BN>(new BN(0))
     const [relayerWallet, setRelayerWallet] = useState<PublicKey | null>(null)
+    const [vaultAddress, setVaultAddress] = useState<PublicKey | null>(null)
     const [account, setAccount] = useState<PublicKey>(
         () =>
             accounts.data?.find(
@@ -61,6 +61,9 @@ export function SukuraUi() {
     const { accountQuery, depositMutation, withdrawMutation } = useSukuraProgramAccount({
         account,
     })
+
+    const withdrawModalRef = useRef<HTMLDialogElement | null>(null)
+    const depositModalRef = useRef<HTMLDialogElement | null>(null)
 
     const handleAmountChange = (amountPerWithdrawal: number) => {
         setAmountPerWithdrawal(amountPerWithdrawal)
@@ -147,7 +150,7 @@ export function SukuraUi() {
             const noteSavedSuccessfully = await handleDepositNoteDownload()
 
             if (noteSavedSuccessfully) {
-                document.getElementById('deposit-modal')?.showModal()
+                depositModalRef.current?.showModal()
             }
         } catch (err) {
             toast.error('Failed to save note file')
@@ -210,11 +213,11 @@ export function SukuraUi() {
     const handleDeleteUploadedNote = () => {
         setSelectedFile(null)
         setIsNoteUploaded(false)
+        setWithdrawalNoteData(null)
+        setRecipientAddress(undefined)
     }
 
     const handleProofGen = async () => {
-        document.getElementById('withdraw-modal')?.showModal()
-
         if (!withdrawalNoteData) {
             toast.error('Please upload a valid note file first.')
             return
@@ -247,56 +250,58 @@ export function SukuraUi() {
             return
         }
 
-        const treeData: IMerkleTree = await response.json()
-        const { tree, vaultAddress } = treeData
-        const poseidonHash = await createPoseidonHash()
-        const deTree = MerkleTree.deserialize(tree, poseidonHash)
-        const index = deTree.indexOf(commitment)
-        const relayerWallet = (await getOrCreateRelayerWallet()) as string
-        const fee = new BN(amountPerWithdrawal * 0.01)
-        const { pathElements, pathIndices } = deTree.path(index)
-        const input = {
-            root: deTree.root,
-            nullifierHash,
-            nullifier,
-            recipient: solanaAddressToBigInt(recipientAddress.toString()),
-            secret,
-            pathElements,
-            pathIndices,
-            relayer: solanaAddressToBigInt(relayerWallet),
-            fee: fee.toString(),
-        }
-
         try {
-            setIsGenProof(true)
-            const { proof, publicSignals } = await generateWitnessAndProve(input)
-            setProof(proof)
-            setPublicSignals(publicSignals)
-        } catch (err) {
-            console.log('pppppp')
-            toast.error(`Failed to generate valid proof: ${err}`)
-        } finally {
-            setIsGenProof(true)
-        }
+            const treeData: IMerkleTree = await response.json()
+            const { tree, vaultAddress } = treeData
+            const poseidonHash = await createPoseidonHash()
+            const deTree = MerkleTree.deserialize(tree, poseidonHash)
+            const index = deTree.indexOf(commitment)
+            const relayerWallet = (await getOrCreateRelayerWallet()) as string
+            const fee = new BN(amountPerWithdrawal * 0.01)
+            const { pathElements, pathIndices } = deTree.path(index)
+            const input = {
+                root: deTree.root,
+                nullifierHash,
+                nullifier,
+                recipient: solanaAddressToBigInt(recipientAddress.toString()),
+                secret,
+                pathElements,
+                pathIndices,
+                relayer: solanaAddressToBigInt(relayerWallet),
+                fee: fee.toString(),
+            }
 
-        if (!relayerWallet) {
-            toast.error('Relayer is not available.')
-            return
-        }
+            try {
+                setIsGenProof(true)
+                const { proof, publicSignals } = await generateWitnessAndProve(input)
+                setProof(proof)
+                setPublicSignals(publicSignals)
+            } catch (err) {
+                toast.error(`Failed to generate valid proof: ${err}`)
+            } finally {
+                setIsGenProof(false)
+                setIsProofValid(true)
+                withdrawModalRef.current?.showModal()
+            }
 
-        if (isNoteUploaded && isGenProof) {
-            document.getElementById('withdraw-modal')?.showModal()
-        } else {
-            toast.error('Failed to upload note')
-        }
+            if (!relayerWallet) {
+                toast.error('Relayer is not available.')
+                return
+            }
 
-        setWithdrawalFee(fee)
-        setWithdrawalNullifierHash(nullifierHash)
-        setWithdrawalRoot(input.root.toString())
-        setRelayerWallet(new PublicKey(relayerWallet))
+            setWithdrawalFee(fee)
+            setWithdrawalNullifierHash(nullifierHash)
+            setWithdrawalRoot(input.root.toString())
+            setRelayerWallet(new PublicKey(relayerWallet))
+            setVaultAddress(new PublicKey(vaultAddress))
+        } catch (err: any) {
+            toast.error(err.message)
+        }
     }
 
     const handleWithdrawal = async () => {
+        setIsProofValid(false)
+        setIsWithdrawing(true)
         await withdrawMutation?.mutateAsync({
             nullifierHash: withdrawalNullifierHash,
             root: withdrawalRoot,
@@ -305,11 +310,13 @@ export function SukuraUi() {
             fee: withdrawalFee,
             recipientAddress: recipientAddress as PublicKey,
             relayerWallet: relayerWallet as PublicKey,
+            vaultAddress: vaultAddress as PublicKey,
         })
+        setIsWithdrawing(false)
     }
 
     if (getProgramAccount.isLoading) {
-        return <Spinner text="Loading mixer" overlay={true}/>
+        return <Spinner text="Loading mixer" overlay={true} />
     }
 
     if (!getProgramAccount.data?.value) {
@@ -321,10 +328,6 @@ export function SukuraUi() {
                 </span>
             </div>
         )
-    }
-
-    if (isGenProof) {
-        return <Spinner text="Generating withdrawal proof" overlay={true} />
     }
 
     return false /*accountQuery.isLoading*/ ? (
@@ -346,7 +349,7 @@ export function SukuraUi() {
                 </button>
             </div>
             {isActiveTabDeposit && (
-                <div className="text-neutral-content bg-base-100 border-2 border-base-200 rounded-lg my-2 py-8 px-8 tab-body text-white">
+                <div className="text-neutral-content bg-base-100 border-2 border-base-200 rounded-[24px] my-2 py-8 px-8 tab-body text-white">
                     <div className="flex flex-col items-start gap-12">
                         {/* <div>
                             <h1 className="mb-4">Deposit Token</h1>
@@ -365,13 +368,11 @@ export function SukuraUi() {
                         </Button>
                     </div>
                     {!depositMutation.isPending && (
-                        <dialog id="deposit-modal" className="modal">
+                        <dialog id="deposit-modal" className="modal" ref={depositModalRef}>
                             <div className="modal-box bg-base-300">
                                 <div
                                     className="w-[32px] h-[32px] rounded-[50%] cursor-pointer bg-base-200 flex items-center justify-center absolute top-4 right-2"
-                                    onClick={() =>
-                                        document.getElementById('deposit-modal')?.close()
-                                    }
+                                    onClick={() => depositModalRef.current?.close()}
                                 >
                                     <Image src={CancelBtn} alt="close modal button" />
                                 </div>
@@ -425,7 +426,7 @@ export function SukuraUi() {
                 </div>
             )}
             {!isActiveTabDeposit && (
-                <div className="text-neutral-content bg-base-100 border-2 border-base-200 rounded-lg my-2 p-8 tab-body text-white">
+                <div className="text-neutral-content bg-base-100 border-2 border-base-200 rounded-[24px] my-2 p-8 tab-body text-white">
                     {!isNoteUploaded ? (
                         <div className="flex flex-col items-center text-center gap-12">
                             <div className="flex flex-col items-start gap-2 w-full">
@@ -454,7 +455,7 @@ export function SukuraUi() {
                                 <input
                                     type="text"
                                     id="address"
-                                    className="input bg-base-200 w-full rounded-full"
+                                    className="input bg-base-200 w-full rounded-full h-16"
                                     onChange={handleRecipientAddressChange}
                                     autoCorrect="off"
                                     autoComplete="off"
@@ -536,7 +537,7 @@ export function SukuraUi() {
                                         <input
                                             type="text"
                                             id="address"
-                                            className="input bg-base-200 rounded-full w-full"
+                                            className="input bg-base-200 rounded-full w-full h-16"
                                             onChange={handleRecipientAddressChange}
                                             autoCorrect="off"
                                             autoComplete="off"
@@ -579,7 +580,6 @@ export function SukuraUi() {
                                 )}
                             </div>
                             <Button
-                                className=""
                                 onClick={handleProofGen}
                                 disabled={
                                     withdrawMutation?.isPending ||
@@ -591,14 +591,12 @@ export function SukuraUi() {
                             </Button>
                         </div>
                     )}
-                    {!withdrawMutation?.isPending && isGenProof && (
-                        <dialog id="withdraw-modal" className="modal">
+                    {!withdrawMutation.isPending && (
+                        <dialog id="withdraw-modal" ref={withdrawModalRef} className="modal">
                             <div className="modal-box bg-base-300">
                                 <div
                                     className="w-[32px] h-[32px] rounded-[50%] cursor-pointer bg-base-200 flex items-center justify-center absolute top-4 right-2"
-                                    onClick={() =>
-                                        document.getElementById('withdraw-modal')?.close()
-                                    }
+                                    onClick={() => withdrawModalRef.current?.close()}
                                 >
                                     <Image src={CancelBtn} alt="close modal button" />
                                 </div>
@@ -614,7 +612,7 @@ export function SukuraUi() {
                                     <Button
                                         className="btn lg:btn-md  w-full"
                                         onClick={handleWithdrawal}
-                                        disabled={!isGenProof}
+                                        disabled={!isProofValid}
                                     >
                                         Send Withdrawal
                                     </Button>
@@ -625,6 +623,9 @@ export function SukuraUi() {
                 </div>
             )}
             {processUploadedNote && <Spinner text="Uploading note" overlay={true} />}
+            {isGenProof && <Spinner text="Generating withdrawal proof" overlay={true} />}
+            {withdrawMutation.isPending && <Spinner text="Sending withdrawal" overlay={true} />}
+            {depositMutation.isPending && <Spinner text="Sending deposit" overlay={true} />}
         </div>
     )
 }
