@@ -335,8 +335,8 @@ export function SukuraUi() {
         )
     }
 
-    return false /*accountQuery.isLoading*/ ? (
-        <Spinner text="Getting pools ready" />
+    return accountQuery.isLoading ? (
+        <Spinner text="Getting pools ready" overlay={true} />
     ) : (
         <div className="md:min-w-[700px] w-full absolute top-[10vh]">
             <div className="tab-header flex justify-between items-center h-12 sm:w-2/5 w-full bg-base-300 rounded-full py-2 px-2">

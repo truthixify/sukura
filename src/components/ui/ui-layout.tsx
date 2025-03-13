@@ -180,7 +180,7 @@ export function useTransactionToast() {
                     className="cursor-pointer order-0 sm:order-1"
                     src={Cancel}
                     alt="cancel"
-                    onClick={() => toast.dismiss()}
+                    onClick={() => toast.remove()}
                 />
             </div>
         )
@@ -204,7 +204,7 @@ export function useErrorToast() {
                     className="cursor-pointer"
                     src={Cancel}
                     alt="cancel"
-                    onClick={() => toast.dismiss()}
+                    onClick={() => toast.remove()}
                 />
             </div>
         )

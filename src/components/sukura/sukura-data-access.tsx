@@ -100,7 +100,7 @@ export function useSukuraProgramAccount({ account }: { account: PublicKey }) {
                 const signatureArr = await provider.sendAll([{ tx }])
                 signature = signatureArr[0]
             } catch (err) {
-                throw new Error('Transaction submission failed')
+                throw err
             }
 
             await confirmTransaction(connection, signature)
@@ -122,7 +122,14 @@ export function useSukuraProgramAccount({ account }: { account: PublicKey }) {
             transactionToast(tx)
             return accounts.refetch()
         },
-        onError: (err) => errorToast('Failed to deposit', formatError(err)),
+        onError: (err) => {
+            errorToast(
+                'Failed to deposit',
+                formatError(
+                    err.message.length < 100 ? err : new Error('Transaction simulation failed')
+                )
+            )
+        },
     })
 
     const withdrawMutation = useMutation({
