@@ -11,6 +11,7 @@ const config: Config = {
         backgroundImage: {
             "gradient-primary": "linear-gradient(45deg, #42B3FF, #7852F3)",
             "gradient-secondary": "linear-gradient(45deg, #6875A9, #292E43)",
+            "gradient-error": "linear-gradient(270deg, rgba(35, 40, 54, 0.00) 81.63%, rgba(249, 77, 77, 0.20) 101.05%), #232837"
         },
         animation: {
             colorCycle1: "colorCycle 4s infinite linear 0s",

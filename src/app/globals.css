@@ -100,3 +100,24 @@ body {
     transform: translate(-50%, -50%);
     clip-path: polygon(50% 0%, 68% 50%, 50% 100%, 32% 51%);
 }
+
+.error-toast {
+    position: relative;
+}
+
+.error-toast * {
+    z-index: 10;
+}
+
+.error-toast::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 60%;
+    border-radius: 16px;
+    background: linear-gradient(270deg, rgba(35, 40, 54, 0.00) 81.63%, rgba(249, 77, 77, 0.20) 101.05%), #232837;
+    backdrop-filter: blur(10px);
+    z-index: 0;
+}

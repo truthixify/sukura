@@ -2,7 +2,7 @@
 
 import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js'
 import React, { useRef, useState } from 'react'
-import { Button, RangeSelector, Spinner } from '../ui/ui-layout'
+import { Button, formatError, RangeSelector, Spinner, useErrorToast } from '../ui/ui-layout'
 import { useSukuraProgram, useSukuraProgramAccount } from './sukura-data-access'
 import {
     createPoseidonHash,
@@ -62,6 +62,8 @@ export function SukuraUi() {
 
     const withdrawModalRef = useRef<HTMLDialogElement | null>(null)
     const depositModalRef = useRef<HTMLDialogElement | null>(null)
+
+    const errorToast = useErrorToast()
 
     const handleAmountChange = (amountPerWithdrawal: number) => {
         setAmountPerWithdrawal(amountPerWithdrawal)
@@ -139,7 +141,7 @@ export function SukuraUi() {
         try {
             setRecipientAddress(new PublicKey(event.target.value))
         } catch (err) {
-            toast.error('Invalid recipient address. Please enter a valid Solana address.')
+            errorToast('Invalid recipient address', 'Please enter a valid Solana address')
         }
     }
 
@@ -151,15 +153,21 @@ export function SukuraUi() {
                 depositModalRef.current?.showModal()
             }
         } catch (err) {
-            toast.error('Failed to save note file')
+            errorToast('Failed to save note file', formatError(err))
         }
     }
 
     const handleDeposit = async () => {
-        await depositMutation.mutateAsync(commitment)
-        setIsNoteSaved(false)
-        setNoteFileName("")
-        setCommitment("")
+        try {
+            await depositMutation.mutateAsync(commitment)
+            setIsNoteSaved(false)
+            setNoteFileName('')
+            setCommitment('')
+        } catch (err) {
+            setIsNoteSaved(false)
+            setNoteFileName('')
+            setCommitment('')
+        }
     }
 
     const handleWithdrawalNoteUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -184,7 +192,7 @@ export function SukuraUi() {
                 //     console.log(err)
                 // }
             } catch (err) {
-                toast.error('Invalid file format. Please upload a valid JSON file.')
+                errorToast('Invalid file format', 'Please upload a valid JSON file')
             }
         }
     }
@@ -205,7 +213,7 @@ export function SukuraUi() {
                 setProcessUploadedNote(true)
                 setTimeout(() => setProcessUploadedNote(false), 2000)
             } catch (err) {
-                toast.error('Invalid file format. Please upload a valid JSON file.')
+                errorToast('Invalid file format', 'Please upload a valid JSON file')
             }
         }
     }
@@ -218,13 +226,14 @@ export function SukuraUi() {
     }
 
     const handleProofGen = async () => {
+        setIsGenProof(true)
         if (!withdrawalNoteData) {
-            toast.error('Please upload a valid note file first.')
+            errorToast('Invalid note file', 'Please upload a valid note file first')
             return
         }
 
         if (!recipientAddress) {
-            toast.error('Please enter a valid recipient address.')
+            errorToast('Invalid recipient address', 'Please enter a valid recipient address')
             return
         }
 
@@ -238,19 +247,13 @@ export function SukuraUi() {
                     amountPerWithdrawal * LAMPORTS_PER_SOL
             )?.publicKey || defaultPublicKey
 
-        const response = await fetch(`/api/merkleTree/${account.toString()}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        })
-
-        if (!response.ok) {
-            toast.error('Merkle Tree query failed')
-            return
-        }
-
         try {
+            const response = await fetch(`/api/merkleTree/${account.toString()}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
             const treeData: IMerkleTree = await response.json()
             const { tree, vaultAddress } = treeData
             const poseidonHash = await createPoseidonHash()
@@ -272,12 +275,11 @@ export function SukuraUi() {
             }
 
             try {
-                setIsGenProof(true)
                 const { proof, publicSignals } = await generateWitnessAndProve(input)
                 setProof(proof)
                 setPublicSignals(publicSignals)
             } catch (err) {
-                toast.error(`Failed to generate valid proof: ${err}`)
+                setIsGenProof(false)
             } finally {
                 setIsGenProof(false)
                 setIsProofValid(true)
@@ -285,7 +287,7 @@ export function SukuraUi() {
             }
 
             if (!relayerWallet) {
-                toast.error('Relayer is not available.')
+                errorToast('Relayer is not available', 'Please try again later')
                 return
             }
 
@@ -295,7 +297,12 @@ export function SukuraUi() {
             setRelayerWallet(new PublicKey(relayerWallet))
             setVaultAddress(new PublicKey(vaultAddress))
         } catch (err: any) {
-            toast.error(err.message)
+            setIsGenProof(false)
+            if (err.message.includes('Index out of bounds: -1')) {
+                errorToast('Error generating proof', 'Commitment does not exist in the merkle tree')
+            } else {
+                errorToast('Error generating proof', err.message)
+            }
         }
     }
 
@@ -461,14 +468,7 @@ export function SukuraUi() {
                                     required
                                 />
                             </div>
-                            <Button
-                                className=""
-                                disabled={
-                                    withdrawMutation?.isPending ||
-                                    !withdrawalNoteData ||
-                                    !recipientAddress
-                                }
-                            >
+                            <Button disabled={!withdrawalNoteData || !recipientAddress}>
                                 Withdraw
                             </Button>
                         </div>
@@ -579,11 +579,7 @@ export function SukuraUi() {
                             </div>
                             <Button
                                 onClick={handleProofGen}
-                                disabled={
-                                    withdrawMutation?.isPending ||
-                                    !withdrawalNoteData ||
-                                    !recipientAddress
-                                }
+                                disabled={!withdrawalNoteData || !recipientAddress}
                             >
                                 Withdraw
                             </Button>

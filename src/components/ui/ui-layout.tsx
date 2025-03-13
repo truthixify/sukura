@@ -9,7 +9,9 @@ import toast, { Toaster } from 'react-hot-toast'
 import { ClusterUiSelect, ExplorerLink } from '../cluster/cluster-ui'
 import { WalletButton } from '../solana/solana-provider'
 import SukuraLogo from '../../../public/SukuraLogo.svg'
-import ArrowUp from '../../../public/arrowup.svg'
+import Check from '../../../public/SealCheck.svg'
+import Cancel from '../../../public/X-toast.svg'
+import ErrorImg from '../../../public/Warning.svg'
 import '../../app/wallet.css'
 import { usePathname } from 'next/navigation'
 import '../../app/wallet.css'
@@ -157,15 +159,52 @@ export function ellipsify(str = '', len = 4) {
     return str
 }
 
+export function formatError(err: any) {
+    return err.message.replace(/Error:\s*/g, '')
+}
+
 export function useTransactionToast() {
     return (signature: string) => {
-        toast.success(
-            <div className={'text-center'}>
-                <div className="text-lg">Transaction sent</div>
+        toast.custom(
+            <div className="flex items-center w-[400px]  justify-between bg-[#232837] rounded-[16px] p-4 sm:w-[700px] flex-wrap">
+                <div className="flex items-center gap-4">
+                    <Image src={Check} alt="check" />
+                    <span className="text-lg text-white">Transaction Successful</span>
+                </div>
                 <ExplorerLink
                     path={`tx/${signature}`}
                     label={'View Transaction'}
-                    className="btn btn-xs btn-primary"
+                    className="btn bg-[#4A5167] text-white self-center order-1 mt-6 basis-full sm:order-0 sm:mt-0"
+                />
+                <Image
+                    className="cursor-pointer order-0 sm:order-1"
+                    src={Cancel}
+                    alt="cancel"
+                    onClick={() => toast.dismiss()}
+                />
+            </div>
+        )
+    }
+}
+
+export function useErrorToast() {
+    return (main: string, sub: string) => {
+        toast.custom(
+            <div className="flex items-center w-[500px] justify-between p-4 bg-[#232837] rounded-[16px] bg-gradient-error error-toast">
+                <div className="flex items-center w-full h-full">
+                    <div className="mr-8">
+                        <Image src={ErrorImg} alt="error" />
+                    </div>
+                    <div className="flex flex-col">
+                        <span className="text-lg text-white">{main}</span>
+                        <span>{sub}</span>
+                    </div>
+                </div>
+                <Image
+                    className="cursor-pointer"
+                    src={Cancel}
+                    alt="cancel"
+                    onClick={() => toast.dismiss()}
                 />
             </div>
         )
@@ -270,7 +309,7 @@ export function Spinner({ text, overlay = false }: { text?: string; overlay?: bo
 
     return (
         <div
-            className={`flex flex-col items-center ${overlay && 'fixed top-0 left-0 w-screen h-screen flex flex-col items-center justify-center backdrop-blur-sm overflow-hidden'}`}
+            className={`flex flex-col items-center ${overlay && 'fixed top-0 left-0 w-screen h-screen flex flex-col items-center justify-center backdrop-blur-[10px] overflow-hidden'}`}
         >
             <svg
                 className="w-12 h-12"

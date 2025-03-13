@@ -14,7 +14,7 @@ import { useMemo } from 'react'
 import toast from 'react-hot-toast'
 import { useCluster } from '../cluster/cluster-data-access'
 import { useAnchorProvider } from '../solana/solana-provider'
-import { useTransactionToast } from '../ui/ui-layout'
+import { formatError, useErrorToast, useTransactionToast } from '../ui/ui-layout'
 import BN from 'bn.js'
 import { bigintToUint8Array, parseProofToBytesArray, parseToBytesArray } from '../../../utils/utils'
 import { signTransactinWithRelayer } from '../../../utils/relayer'
@@ -29,7 +29,6 @@ const fee = BigInt(amountPerWithdrawal.toNumber() * 0.01).toString()
 export function useSukuraProgram() {
     const { connection } = useConnection()
     const { cluster } = useCluster()
-    const transactionToast = useTransactionToast()
     const provider = useAnchorProvider()
     const programId = useMemo(() => getSukuraProgramId(cluster.network as Cluster), [cluster])
     const program = useMemo(() => getSukuraProgram(provider, programId), [provider, programId])
@@ -55,6 +54,7 @@ export function useSukuraProgram() {
 export function useSukuraProgramAccount({ account }: { account: PublicKey }) {
     const { cluster } = useCluster()
     const transactionToast = useTransactionToast()
+    const errorToast = useErrorToast()
     const { program, accounts, programId } = useSukuraProgram()
 
     const accountQuery = useQuery({
@@ -122,7 +122,7 @@ export function useSukuraProgramAccount({ account }: { account: PublicKey }) {
             transactionToast(tx)
             return accounts.refetch()
         },
-        onError: (err) => toast.error(`Failed to deposit: ${err}`),
+        onError: (err) => errorToast('Failed to deposit', formatError(err)),
     })
 
     const withdrawMutation = useMutation({
@@ -185,8 +185,7 @@ export function useSukuraProgramAccount({ account }: { account: PublicKey }) {
             transactionToast(tx)
             return accountQuery.refetch()
         },
-        onError: (err) =>
-            toast.error(`Failed to withdraw: ${err.message.replace(/Error:\s*/g, '')}`),
+        onError: (err) => errorToast('Failed to withdraw', formatError(err)),
     })
 
     return {
