@@ -239,15 +239,14 @@ export function RangeSelector({
                     ))}
                 </div>
             </div>
-            <div className="w-full flex justify-between">
+            <div className="w-full flex justify-between rounded-full">
                 {poolAmountList.map((amount: number) => (
                     <label
                         key={amount}
                         htmlFor={`amount-${amount}`}
-                        className="cursor-pointer flex flex-col items-center text-neutral text-xs"
+                        className="cursor-pointer flex flex-col items-center text-neutral text-xs mt-4"
                     >
-                        <Image src={ArrowUp} alt="arrow up" width={8} />
-                        <p>{amount} SOL</p>
+                        {amount} SOL
                     </label>
                 ))}
             </div>

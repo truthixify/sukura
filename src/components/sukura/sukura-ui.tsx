@@ -31,7 +31,6 @@ export function SukuraUi() {
 
     const [amountPerWithdrawal, setAmountPerWithdrawal] = useState<number>(0.1)
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
-    const [depositNoteData, setDepositNoteData] = useState<NoteData | null>(null)
     const [withdrawalNoteData, setWithdrawalNoteData] = useState<NoteData | null>(null)
     const [recipientAddress, setRecipientAddress] = useState<PublicKey>()
     const [isActiveTabDeposit, setIsActiveTabDeposit] = useState<boolean>(true)
@@ -41,7 +40,6 @@ export function SukuraUi() {
     const [isNoteUploaded, setIsNoteUploaded] = useState<boolean>(false)
     const [isGenProof, setIsGenProof] = useState<boolean>(false)
     const [isProofValid, setIsProofValid] = useState<boolean>(false)
-    const [isWithdrawing, setIsWithdrawing] = useState<boolean>(false)
     const [proof, setProof] = useState<Groth16Proof | null>(null)
     const [publicSignals, setPublicSignals] = useState<PublicSignals | null>(null)
     const [withdrawalRoot, setWithdrawalRoot] = useState<string>('')
@@ -160,6 +158,8 @@ export function SukuraUi() {
     const handleDeposit = async () => {
         await depositMutation.mutateAsync(commitment)
         setIsNoteSaved(false)
+        setNoteFileName("")
+        setCommitment("")
     }
 
     const handleWithdrawalNoteUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -301,7 +301,6 @@ export function SukuraUi() {
 
     const handleWithdrawal = async () => {
         setIsProofValid(false)
-        setIsWithdrawing(true)
         await withdrawMutation?.mutateAsync({
             nullifierHash: withdrawalNullifierHash,
             root: withdrawalRoot,
@@ -312,7 +311,6 @@ export function SukuraUi() {
             relayerWallet: relayerWallet as PublicKey,
             vaultAddress: vaultAddress as PublicKey,
         })
-        setIsWithdrawing(false)
     }
 
     if (getProgramAccount.isLoading) {
