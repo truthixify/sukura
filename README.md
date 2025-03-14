@@ -13,10 +13,10 @@ Sukura is a **privacy-preserving** transaction mixer built on **Solana**. It ena
 - **Solana** – Blockchain infrastructure
 - **Anchor** – Solana smart contract framework
 - **Next.js** – Frontend & API routes
-- **MongoDB** – Stores Merkle tree data
+- **MongoDB** – Stores Merkle tree data off-chain
 - **Mongoose** – ODM for MongoDB
-- **Shyft API** – Transaction relayer & signer
-- **Circom** – Used for generating zero-knowledge proofs.
+- **Shyft API** – Transaction relayer
+- **Circom** – Used for writing ZK circuit.
 
 ---
 
