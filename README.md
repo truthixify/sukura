@@ -86,8 +86,8 @@ Your Next.js app should now be running at `http://localhost:3000`
 {
     nullifierHash: string // Prevents double spending
     root: string // Current Merkle tree root
-    proof: any // Zero-knowledge proof
-    publicSignals: any // Public inputs for verification
+    proof: Proof // Zero-knowledge proof
+    publicSignals: PublicSignals // Public inputs for verification
     fee: BN // Transaction fee
     recipientAddress: PublicKey // Address receiving the funds
     relayerWallet: PublicKey // Relayer handling the transaction
