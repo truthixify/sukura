@@ -6,7 +6,12 @@ import { AppHero } from '../ui/ui-layout'
 export default function HomeFeature() {
     return (
         <div className="relative h-full">
-            <AppHero title="the fully decentralized non-custodial protocol" subtitle={''}></AppHero>
+            <AppHero
+                title="Untraceable Transactions, Absolute Privacy"
+                subtitle={
+                    'Built for those who value financial freedom, Sukura obfuscates transaction trails, making it impossible to trace your funds. Stay anonymous, stay secure, stay ahead'
+                }
+            ></AppHero>
             <Home />
         </div>
     )

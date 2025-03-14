@@ -230,7 +230,9 @@ export function SukuraUi() {
             withdrawalNoteData
         setAmountPerWithdrawal(amountPerWithdrawal)
         const account = accounts.data?.find(
-            (account) => account.account.amountPerWithdrawal.toNumber() === amountPerWithdrawal
+            (account) =>
+                account.account.amountPerWithdrawal.toNumber() ===
+                amountPerWithdrawal * LAMPORTS_PER_SOL
         )?.publicKey as PublicKey
         setAccount(account)
 

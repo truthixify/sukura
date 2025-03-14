@@ -2,17 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,100..900;1,100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+.inter-tight {
+    font-family: "Inter Tight", "Inter", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+}
+
 html,
 body {
     height: 100%;
+    font-family: "Inter Tight", sans-serif;
+    letter-spacing: -4%;
 }
 
-.wallet-adapter-button-trigger {
-    background: rgb(100, 26, 230) !important;
-    border-radius: 8px !important;
-    padding-left: 16px !important;
-    padding-right: 16px !important;
-}
 .wallet-adapter-dropdown-list,
 .wallet-adapter-button {
     font-family: inherit !important;
@@ -57,7 +62,7 @@ body {
     border-radius: 50%;
     background-color: #fff;
     position: relative;
-    z-index: 100;
+    z-index: 10;
     margin-top: -2px;
 }
 
@@ -66,6 +71,7 @@ body {
     position: absolute;
     left: -1px;
     top: 20px;
+    z-index: 0;
 }
 
 .range-selector {
@@ -83,6 +89,7 @@ body {
     background-color: #7AFB96;
     transition: all 0.3s ease-in-out;
     border-radius: inherit;
+    z-index: 0;
 }
 
 .range-btn-active {
@@ -99,6 +106,7 @@ body {
     background-color: inherit;
     transform: translate(-50%, -50%);
     clip-path: polygon(50% 0%, 68% 50%, 50% 100%, 32% 51%);
+    z-index: 0;
 }
 
 .error-toast {

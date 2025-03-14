@@ -191,8 +191,6 @@ export function parseSimulationError(logs: string[]) {
         }
     }
 
-    console.log(reason)
-
     return {
         error: 'Transaction simulation failed',
         failing_instruction: 2,
@@ -385,7 +383,7 @@ export function Spinner({ text, overlay = false }: { text?: string; overlay?: bo
 
     return (
         <div
-            className={`flex flex-col items-center ${overlay && 'fixed top-0 left-0 w-screen h-screen flex flex-col items-center justify-center backdrop-blur-[10px] overflow-hidden'}`}
+            className={`flex flex-col items-center z-50 ${overlay && 'fixed top-0 left-0 w-screen h-screen flex flex-col items-center justify-center backdrop-blur-[10px] overflow-hidden'}`}
         >
             <svg
                 className="w-12 h-12"

@@ -3,7 +3,6 @@ import { ClusterProvider } from '@/components/cluster/cluster-data-access'
 import { SolanaProvider } from '@/components/solana/solana-provider'
 import { UiLayout } from '@/components/ui/ui-layout'
 import { ReactQueryProvider } from './react-query-provider'
-import { connectDB } from '@/utils/mongDb'
 import { BodyWrapper } from './body-wrapper'
 
 export const metadata = {
@@ -19,7 +18,6 @@ const links: { label: string; path: string }[] = [
 ]
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-    connectDB().catch((err) => console.log(err))
     return (
         <html lang="en" data-theme="sukura">
             <BodyWrapper>

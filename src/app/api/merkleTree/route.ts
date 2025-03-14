@@ -1,6 +1,9 @@
 import FixedMerkleTree from 'fixed-merkle-tree'
 import MerkleTree from './model'
 import { createPoseidonHash } from '../../../../utils/utils'
+import { connectDB } from '@/utils/mongDb'
+
+connectDB().catch((err) => console.log(err))
 
 export async function POST(req: Request) {
     try {
