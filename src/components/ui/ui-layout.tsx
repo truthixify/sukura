@@ -16,16 +16,10 @@ import '../../app/wallet.css'
 import { usePathname } from 'next/navigation'
 import '../../app/wallet.css'
 import { BN, ProgramAccount } from '@coral-xyz/anchor'
-import { PublicKey } from '@solana/web3.js'
+import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js'
 import { UseQueryResult } from '@tanstack/react-query'
 
-export function UiLayout({
-    children,
-    links,
-}: {
-    children: ReactNode
-    links: { label: string; path: string }[]
-}) {
+export function UiLayout({ children }: { children: ReactNode }) {
     const pathname = usePathname()
 
     return (
@@ -184,8 +178,8 @@ export function parseSimulationError(logs: string[]) {
             const match = log.match(/(\d+), need (\d+)/)
             if (match) {
                 details = {
-                    attempted_transfer: `${parseInt(match[2]) / 1e9} SOL`,
-                    available_balance: `${parseInt(match[1]) / 1e9} SOL`,
+                    attempted_transfer: `${parseInt(match[2]) / LAMPORTS_PER_SOL} SOL`,
+                    available_balance: `${parseInt(match[1]) / LAMPORTS_PER_SOL} SOL`,
                 }
             }
         }

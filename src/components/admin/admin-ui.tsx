@@ -32,8 +32,8 @@ export function SukuraPoolCreate() {
             {initializePool.isPending && <progress className="progress w-1/2"></progress>}
             <Button
                 className="btn btn-small lg:btn-md btn-primary"
-                onClick={() => initializePool.mutateAsync(amountPerWithdrawal)}
-                disabled={initializePool.isPending || !amountPerWithdrawal}
+                onClick={() => initializePool.mutateAsync(100)}
+                disabled={initializePool.isPending}
             >
                 Create Pool {initializePool.isPending && '...'}
             </Button>

@@ -21,9 +21,9 @@ import {
 } from '../ui/ui-layout'
 import BN from 'bn.js'
 import { bigintToUint8Array, parseProofToBytesArray, parseToBytesArray } from '../../../utils/utils'
-import { signTransactinWithRelayer } from '../../../utils/relayer'
-import { getComputeUnitsIx } from '../../utils/computeUnit'
-import { handleAnchorError } from '@/utils/handleAnchorError'
+import { signTransactionWithRelayer } from '../../utils/relayer'
+import { getComputeUnitsIx } from '../../utils/compute-unit'
+import { handleAnchorError } from '@/utils/parse-anchor-error'
 
 export function useSukuraProgram() {
     const { connection } = useConnection()
@@ -180,7 +180,7 @@ export function useSukuraProgramAccount({ account }: { account: PublicKey }) {
 
             let signature
             try {
-                signature = await signTransactinWithRelayer(serializedMessage)
+                signature = await signTransactionWithRelayer(serializedMessage)
             } catch (err) {
                 const errorMessage = handleAnchorError(err)
                 throw new Error(errorMessage)

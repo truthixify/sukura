@@ -15,7 +15,7 @@ import {
 import BN from 'bn.js'
 import { IMerkleTree } from '@/app/api/merkleTree/model'
 import MerkleTree from 'fixed-merkle-tree'
-import { getOrCreateRelayerWallet } from 'utils/relayer'
+import { getOrCreateRelayerWallet } from '@/utils/relayer'
 import { Groth16Proof, PublicSignals } from 'snarkjs'
 import Image from 'next/image'
 import FileArrowUp from '../../../public/FileArrowUp.svg'
@@ -78,14 +78,14 @@ export function SukuraUi() {
             nullifier,
             nullifierHash,
             commitment,
-            amountPerWithdrawal: (amountPerWithdrawal as number) / 1e9,
+            amountPerWithdrawal: (amountPerWithdrawal as number) / LAMPORTS_PER_SOL,
         }
 
         setCommitment(commitment)
 
         try {
             const jsonData = JSON.stringify(data, null, 2)
-            const noteName = `sukura-sol-${(amountPerWithdrawal as number) / 1e9}-${nullifierHash.substring(0, 5)}${commitment.substring(0, 5)}.json`
+            const noteName = `sukura-sol-${(amountPerWithdrawal as number) / LAMPORTS_PER_SOL}-${nullifierHash.substring(0, 5)}${commitment.substring(0, 5)}.json`
             setNoteFileName(noteName)
 
             // Use File System Access API for user-selected save location
@@ -245,7 +245,7 @@ export function SukuraUi() {
             const deTree = MerkleTree.deserialize(tree, poseidonHash)
             const index = deTree.indexOf(commitment)
             const relayerWallet = (await getOrCreateRelayerWallet()) as string
-            const fee = new BN(amountPerWithdrawal * 0.01)
+            const fee = new BN(amountPerWithdrawal * 0.01 * LAMPORTS_PER_SOL)
             const { pathElements, pathIndices } = deTree.path(index)
             const input = {
                 root: deTree.root,

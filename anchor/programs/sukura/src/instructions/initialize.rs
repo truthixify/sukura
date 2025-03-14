@@ -1,10 +1,7 @@
 use crate::merkle_tree::MerkleTreeWithHistory;
 use crate::state::Sukura;
+use crate::SukuraError;
 use anchor_lang::prelude::*;
-
-/// A hardcoded public key used for initializing the pool.
-/// This ensures only the predefined authority can create a new pool.
-const HARDCODED_PUBKEY: Pubkey = pubkey!("3pzgiv8AQotxN6UVCVv9zVQ2qsf4Dx3LZY6ixZGau9M7");
 
 /// Initializes a new Sukura pool.
 ///
@@ -26,6 +23,19 @@ pub fn initialize_pool(
     nonce: u8,
 ) -> Result<()> {
     let pool = &mut ctx.accounts.pool;
+    let global_authority = &mut ctx.accounts.global_authority;
+
+    // If the global authority is uninitialized, set the first caller as the authority
+    if global_authority.authority == Pubkey::default() {
+        global_authority.authority = ctx.accounts.authority.key();
+    } else {
+        // Ensure only the recorded global authority can initialize pools
+        require_keys_eq!(
+            global_authority.authority,
+            ctx.accounts.authority.key(),
+            SukuraError::Unauthorized
+        );
+    }
 
     // Set the nonce for deriving the pool signer
     pool.nonce = nonce;
@@ -69,7 +79,6 @@ pub struct InitializePool<'info> {
     /// This must match the predefined `HARDCODED_PUBKEY` to ensure only
     /// the designated entity can initialize the pool.
     #[account(mut)]
-    #[account(address = HARDCODED_PUBKEY)]
     authority: Signer<'info>,
 
     /// The account storing the Sukura pool state.
@@ -105,6 +114,21 @@ pub struct InitializePool<'info> {
     )]
     pub vault: AccountInfo<'info>,
 
+    /// The global authority account that stores the only allowed initializer.
+    #[account(
+        init,
+        seeds = [b"global-authority", pool.key().as_ref()],
+        bump,
+        payer = authority,
+        space = 8 + 32
+    )]
+    pub global_authority: Box<Account<'info, GlobalAuthority>>,
+
     /// The Solana system program.
     pub system_program: Program<'info, System>,
+}
+
+#[account]
+pub struct GlobalAuthority {
+    pub authority: Pubkey, // The first caller becomes the global authority
 }

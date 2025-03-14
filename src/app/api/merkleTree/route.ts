@@ -1,9 +1,9 @@
 import FixedMerkleTree from 'fixed-merkle-tree'
 import MerkleTree from './model'
 import { createPoseidonHash } from '../../../../utils/utils'
-import { connectDB } from '@/utils/mongDb'
+import { connectDB } from '@/utils/mongo-db'
 import mongoose from 'mongoose'
-import { confirmTransaction } from '@/utils/txConfirmationRetry'
+import { confirmTransaction } from '@/utils/tx-confirmation-retry'
 import { Connection } from '@solana/web3.js'
 
 connectDB().catch((err) => console.log(err))

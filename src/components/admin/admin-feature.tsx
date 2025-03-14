@@ -27,7 +27,7 @@ export default function AdminFeature() {
                 </p>
                 <SukuraPoolCreate />
             </AppHero>
-            <SukuraPoolList />
+            {/* <SukuraPoolList /> */}
         </div>
     ) : (
         <div className="max-w-4xl mx-auto">

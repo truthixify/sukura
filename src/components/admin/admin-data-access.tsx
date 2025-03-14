@@ -7,6 +7,7 @@ import {
     Keypair,
     LAMPORTS_PER_SOL,
     PublicKey,
+    SystemProgram,
     TransactionMessage,
     VersionedTransaction,
 } from '@solana/web3.js'
@@ -17,8 +18,8 @@ import { useCluster } from '../cluster/cluster-data-access'
 import { useAnchorProvider } from '../solana/solana-provider'
 import { useTransactionToast } from '../ui/ui-layout'
 import { BN } from 'bn.js'
-import { getComputeUnitsIx } from '../../utils/computeUnit'
-import { confirmTransaction } from '@/utils/txConfirmationRetry'
+import { getComputeUnitsIx } from '../../utils/compute-unit'
+import { confirmTransaction } from '@/utils/tx-confirmation-retry'
 
 const levels = 28
 
@@ -48,6 +49,10 @@ export function useSukuraProgram() {
                 [pool.publicKey.toBuffer()],
                 programId
             )
+            const [globalAuthority] = PublicKey.findProgramAddressSync(
+                [Buffer.from('global-authority'), pool.publicKey.toBuffer()],
+                program.programId
+            )
 
             if (!amount) {
                 throw new Error('Amount cannot be null')
@@ -57,8 +62,13 @@ export function useSukuraProgram() {
 
             const txIns = await program.methods
                 .initializePool(levels, amountPerWithdrawal, nonce)
-                .accounts({
+                .accountsStrict({
                     pool: pool.publicKey,
+                    authority: provider.publicKey,
+                    vault,
+                    poolSigner: vault,
+                    globalAuthority,
+                    systemProgram: SystemProgram.programId,
                 })
                 .instruction()
             const { blockhash } = await connection.getLatestBlockhash()
@@ -80,7 +90,7 @@ export function useSukuraProgram() {
                 const signatureArr = await provider.sendAll([{ tx }])
                 signature = signatureArr[0]
             } catch (err) {
-                throw new Error('Transaction submission failed')
+                throw err
             }
 
             await confirmTransaction(connection, signature)

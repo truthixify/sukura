@@ -1,5 +1,5 @@
 {
-  "address": "BAeMcGDnkVc53FFhAjPePpJRABsGS8NAehqqsYNztXJF",
+  "address": "GkXZcnYaSWQY9vanPo1FA749CvwwqLuqp23Vn3vrRfrP",
   "metadata": {
     "name": "sukura",
     "version": "0.1.0",
@@ -117,8 +117,7 @@
             "the designated entity can initialize the pool."
           ],
           "writable": true,
-          "signer": true,
-          "address": "3pzgiv8AQotxN6UVCVv9zVQ2qsf4Dx3LZY6ixZGau9M7"
+          "signer": true
         },
         {
           "name": "pool",
@@ -156,6 +155,42 @@
           "writable": true,
           "pda": {
             "seeds": [
+              {
+                "kind": "account",
+                "path": "pool"
+              }
+            ]
+          }
+        },
+        {
+          "name": "global_authority",
+          "docs": [
+            "The global authority account that stores the only allowed initializer."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  45,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
               {
                 "kind": "account",
                 "path": "pool"
@@ -359,6 +394,19 @@
   ],
   "accounts": [
     {
+      "name": "GlobalAuthority",
+      "discriminator": [
+        251,
+        185,
+        159,
+        84,
+        23,
+        33,
+        205,
+        72
+      ]
+    },
+    {
       "name": "Sukura",
       "discriminator": [
         152,
@@ -420,6 +468,11 @@
       "code": 6003,
       "name": "InvalidProof",
       "msg": "Invalid proof provided for withdrawal"
+    },
+    {
+      "code": 6004,
+      "name": "Unauthorized",
+      "msg": "Unauthorized caller"
     }
   ],
   "types": [
@@ -455,6 +508,18 @@
           {
             "name": "timestamp",
             "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GlobalAuthority",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
           }
         ]
       }

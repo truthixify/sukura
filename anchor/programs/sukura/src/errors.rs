@@ -30,4 +30,15 @@ pub enum SukuraError {
     /// This ensures that only properly verified zero-knowledge proofs can be used to withdraw funds.
     #[msg("Invalid proof provided for withdrawal")]
     InvalidProof,
+
+    /// Error: Unauthorized action.
+    ///
+    /// This error occurs when an account attempts to perform an action
+    /// that requires special privileges, such as initializing a pool without
+    /// being the designated global authority.
+    ///
+    /// - **Cause:** The caller's public key does not match the stored authority.
+    /// - **Solution:** Ensure that the correct authorized account is used.
+    #[msg("Unauthorized caller")]
+    Unauthorized,
 }
