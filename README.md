@@ -44,7 +44,7 @@ NODE_ENV=development # or production
 
 ### 4️⃣ Run the Development Server
 ```sh
-npm run dev  # or yarn dev
+npm run dev
 ```
 Your Next.js app should now be running at `http://localhost:3000`
 
