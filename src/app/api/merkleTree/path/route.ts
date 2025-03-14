@@ -1,8 +1,11 @@
 import FixedMerkleTree from 'fixed-merkle-tree'
 import MerkleTree from '../model'
+import { connectDB } from '@/lib/mongo-db'
 
 export async function GET(req: Request) {
     try {
+        await connectDB()
+
         const { poolAddress, index } = await req.json()
         const leafIndex = Number(index)
 

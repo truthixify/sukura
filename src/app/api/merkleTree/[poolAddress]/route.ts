@@ -1,14 +1,15 @@
-import { NextApiRequest } from 'next'
+import { connectDB } from '@/lib/mongo-db'
 import MerkleTree from '../model'
 
 export async function GET(req: Request, { params }: { params: { poolAddress: string } }) {
     try {
+        await connectDB()
+        
         const { poolAddress } = params
+      
         const treeData = await MerkleTree.findOne({ poolAddress }).select('-_id -__v').exec()
 
         if (!treeData) {
-            console.log(poolAddress)
-
             return Response.json({ error: 'Merkle tree not found' }, { status: 404 })
         }
 

@@ -10,6 +10,10 @@ if (!MONGO_URI) {
     console.error('❌ No MongoDB connection string. Set MONGO_URI environment variable')
 }
 
+declare global {
+    var mongooseConnection: Promise<typeof mongoose> | undefined
+}
+
 let isConnected = false // Prevent multiple connections to MongoDB
 
 /**

@@ -82,10 +82,9 @@ export function useSukuraProgramAccount({ account }: { account: PublicKey }) {
                     'Content-Type': 'application/json',
                 },
             })
-            
+
             if (!checkDbResponse.ok) {
-                throw new Error("Error connecting to DB");
-                
+                throw new Error('Error connecting to DB')
             }
 
             const txIns = await program.methods
@@ -126,9 +125,9 @@ export function useSukuraProgramAccount({ account }: { account: PublicKey }) {
                 }),
             })
 
-            if(!response.ok) {
+            if (!response.ok) {
                 const errorData = await response.json().catch(() => ({})) // Handle potential JSON parsing errors
-                throw new Error(errorData.error || "Merkle tree update failed")
+                throw new Error(errorData.error || 'Merkle tree update failed')
             }
 
             return signature
