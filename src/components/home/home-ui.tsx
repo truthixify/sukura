@@ -9,7 +9,6 @@ export function Home() {
             <Button>
                 <a href="/sukura">Go to Mixer</a>
             </Button>
-            {txs("hdbshsihbsh")}
         </div>
     )
 }

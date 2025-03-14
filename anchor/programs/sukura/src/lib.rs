@@ -22,7 +22,7 @@ pub use state::*;
 use anchor_lang::prelude::*;
 
 // Program identifier for the Sukura smart contract.
-declare_id!("GkXZcnYaSWQY9vanPo1FA749CvwwqLuqp23Vn3vrRfrP");
+declare_id!("4DEyCcKWoS4MEPHwC3b8YxgJoXVnfsEJ6WmVRhNCXJQ4");
 
 #[program]
 pub mod sukura {
