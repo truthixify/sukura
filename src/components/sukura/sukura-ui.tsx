@@ -11,7 +11,7 @@ import {
     handleNoteUpload,
     NoteData,
     solanaAddressToBigInt,
-} from 'utils/utils'
+} from '@/utils/utils'
 import BN from 'bn.js'
 import { IMerkleTree } from '@/app/api/merkleTree/model'
 import MerkleTree from 'fixed-merkle-tree'

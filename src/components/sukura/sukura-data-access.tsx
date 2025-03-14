@@ -20,7 +20,7 @@ import {
     useTransactionToast,
 } from '../ui/ui-layout'
 import BN from 'bn.js'
-import { bigintToUint8Array, parseProofToBytesArray, parseToBytesArray } from '../../../utils/utils'
+import { bigintToUint8Array, parseProofToBytesArray, parseToBytesArray } from '../../utils/utils'
 import { signTransactionWithRelayer } from '../../utils/relayer'
 import { getComputeUnitsIx } from '../../utils/compute-unit'
 import { handleAnchorError } from '@/utils/parse-anchor-error'

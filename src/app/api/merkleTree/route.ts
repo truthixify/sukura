@@ -1,6 +1,6 @@
 import FixedMerkleTree from 'fixed-merkle-tree'
 import MerkleTree from './model'
-import { createPoseidonHash } from '../../../../utils/utils'
+import { createPoseidonHash } from '../../../utils/utils'
 import { connectDB } from '@/utils/mongo-db'
 import mongoose from 'mongoose'
 import { confirmTransaction } from '@/utils/tx-confirmation-retry'
