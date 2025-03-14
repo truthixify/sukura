@@ -7,7 +7,7 @@ import { Network, ShyftSdk } from '@shyft-to/js'
  * Network is set to Devnet for testing purposes.
  */
 const shyft = new ShyftSdk({
-    apiKey: process.env.API_KEY || ('pBGDMIBNQwSoU_3H' as string),
+    apiKey: process.env.API_KEY as string,
     network: Network.Devnet, // Using Solana's Devnet for testing and development
 })
 
