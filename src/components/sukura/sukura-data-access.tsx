@@ -14,17 +14,18 @@ import { useMemo } from 'react'
 import toast from 'react-hot-toast'
 import { useCluster } from '../cluster/cluster-data-access'
 import { useAnchorProvider } from '../solana/solana-provider'
-import { formatError, useErrorToast, useTransactionToast } from '../ui/ui-layout'
+import {
+    formatError,
+    parseSimulationError,
+    useErrorToast,
+    useTransactionToast,
+} from '../ui/ui-layout'
 import BN from 'bn.js'
 import { bigintToUint8Array, parseProofToBytesArray, parseToBytesArray } from '../../../utils/utils'
 import { signTransactinWithRelayer } from '../../../utils/relayer'
 import { getComputeUnitsIx } from '../../utils/computeUnit'
 import { confirmTransaction } from '@/utils/txConfirmationRetry'
 import { handleAnchorError } from '@/utils/handleAnchorError'
-
-const levels = 28
-const amountPerWithdrawal = new BN(1_000_000)
-const fee = BigInt(amountPerWithdrawal.toNumber() * 0.01).toString()
 
 export function useSukuraProgram() {
     const { connection } = useConnection()
@@ -125,9 +126,9 @@ export function useSukuraProgramAccount({ account }: { account: PublicKey }) {
         onError: (err) => {
             errorToast(
                 'Failed to deposit',
-                formatError(
-                    err.message.length < 100 ? err : new Error('Transaction simulation failed')
-                )
+                parseSimulationError(err.logs).reason
+                    ? parseSimulationError(err.logs).reason
+                    : formatError(err)
             )
         },
     })

@@ -1,7 +1,7 @@
 'use client'
 
 import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js'
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Button, formatError, RangeSelector, Spinner, useErrorToast } from '../ui/ui-layout'
 import { useSukuraProgram, useSukuraProgramAccount } from './sukura-data-access'
 import {
@@ -24,12 +24,13 @@ import Trash from '../../../public/Trash.svg'
 import X from '../../../public/X.svg'
 import CancelBtn from '../../../public/cancel.svg'
 import { fetchDepositEvent } from '@/utils/getDepositTimestamp'
+import { ProgramAccount } from '@coral-xyz/anchor'
 
 export function SukuraUi() {
     const defaultPublicKey = new PublicKey('11111111111111111111111111111111')
-    const { accounts, getProgramAccount, programId } = useSukuraProgram()
+    const { accounts, getProgramAccount } = useSukuraProgram()
 
-    const [amountPerWithdrawal, setAmountPerWithdrawal] = useState<number>(0.1)
+    const [amountPerWithdrawal, setAmountPerWithdrawal] = useState<number | null>(null)
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
     const [withdrawalNoteData, setWithdrawalNoteData] = useState<NoteData | null>(null)
     const [recipientAddress, setRecipientAddress] = useState<PublicKey>()
@@ -47,17 +48,11 @@ export function SukuraUi() {
     const [withdrawalFee, setWithdrawalFee] = useState<BN>(new BN(0))
     const [relayerWallet, setRelayerWallet] = useState<PublicKey | null>(null)
     const [vaultAddress, setVaultAddress] = useState<PublicKey | null>(null)
-    const [account, setAccount] = useState<PublicKey>(
-        () =>
-            accounts.data?.find(
-                (account) =>
-                    account.account.amountPerWithdrawal.toNumber() === 0.1 * LAMPORTS_PER_SOL
-            )?.publicKey || defaultPublicKey
-    )
+    const [account, setAccount] = useState<PublicKey | null>(null)
     const [processUploadedNote, setProcessUploadedNote] = useState(false)
 
     const { accountQuery, depositMutation, withdrawMutation } = useSukuraProgramAccount({
-        account,
+        account: account as PublicKey,
     })
 
     const withdrawModalRef = useRef<HTMLDialogElement | null>(null)
@@ -65,14 +60,8 @@ export function SukuraUi() {
 
     const errorToast = useErrorToast()
 
-    const handleAmountChange = (amountPerWithdrawal: number) => {
-        setAmountPerWithdrawal(amountPerWithdrawal)
-        const account =
-            accounts.data?.find(
-                (account) =>
-                    account.account.amountPerWithdrawal.toNumber() ===
-                    amountPerWithdrawal * LAMPORTS_PER_SOL
-            )?.publicKey || defaultPublicKey
+    const handleAccountChange = (account: PublicKey, amount: number) => {
+        setAmountPerWithdrawal(amount)
         setAccount(account)
     }
 
@@ -93,14 +82,14 @@ export function SukuraUi() {
             nullifier,
             nullifierHash,
             commitment,
-            amountPerWithdrawal: amountPerWithdrawal,
+            amountPerWithdrawal: (amountPerWithdrawal as number) / 1e9,
         }
 
         setCommitment(commitment)
 
         try {
             const jsonData = JSON.stringify(data, null, 2)
-            const noteName = `sukura-sol-${amountPerWithdrawal}-${nullifierHash.substring(0, 5)}${commitment.substring(0, 5)}.json`
+            const noteName = `sukura-sol-${(amountPerWithdrawal as number) / 1e9}-${nullifierHash.substring(0, 5)}${commitment.substring(0, 5)}.json`
             setNoteFileName(noteName)
 
             // Use File System Access API for user-selected save location
@@ -240,12 +229,10 @@ export function SukuraUi() {
         const { secret, nullifier, nullifierHash, commitment, amountPerWithdrawal } =
             withdrawalNoteData
         setAmountPerWithdrawal(amountPerWithdrawal)
-        const account =
-            accounts.data?.find(
-                (account) =>
-                    account.account.amountPerWithdrawal.toNumber() ===
-                    amountPerWithdrawal * LAMPORTS_PER_SOL
-            )?.publicKey || defaultPublicKey
+        const account = accounts.data?.find(
+            (account) => account.account.amountPerWithdrawal.toNumber() === amountPerWithdrawal
+        )?.publicKey as PublicKey
+        setAccount(account)
 
         try {
             const response = await fetch(`/api/merkleTree/${account.toString()}`, {
@@ -307,17 +294,21 @@ export function SukuraUi() {
     }
 
     const handleWithdrawal = async () => {
-        setIsProofValid(false)
-        await withdrawMutation?.mutateAsync({
-            nullifierHash: withdrawalNullifierHash,
-            root: withdrawalRoot,
-            proof,
-            publicSignals,
-            fee: withdrawalFee,
-            recipientAddress: recipientAddress as PublicKey,
-            relayerWallet: relayerWallet as PublicKey,
-            vaultAddress: vaultAddress as PublicKey,
-        })
+        try {
+            setIsProofValid(false)
+            await withdrawMutation?.mutateAsync({
+                nullifierHash: withdrawalNullifierHash,
+                root: withdrawalRoot,
+                proof,
+                publicSignals,
+                fee: withdrawalFee,
+                recipientAddress: recipientAddress as PublicKey,
+                relayerWallet: relayerWallet as PublicKey,
+                vaultAddress: vaultAddress as PublicKey,
+            })
+        } catch (err) {
+            setIsProofValid(false)
+        }
     }
 
     if (getProgramAccount.isLoading) {
@@ -335,9 +326,7 @@ export function SukuraUi() {
         )
     }
 
-    return accountQuery.isLoading ? (
-        <Spinner text="Getting pools ready" overlay={true} />
-    ) : (
+    return (
         <div className="md:min-w-[700px] w-full absolute top-[10vh]">
             <div className="tab-header flex justify-between items-center h-12 sm:w-2/5 w-full bg-base-300 rounded-full py-2 px-2">
                 <button
@@ -361,13 +350,14 @@ export function SukuraUi() {
                             <div className="w-28 px-4 h-8 flex items-center rounded-full bg-gradient-primary">SOL</div>
                         </div> */}
                         <RangeSelector
-                            amountPerWithdrawal={amountPerWithdrawal}
-                            handleAmountChange={handleAmountChange}
+                            amountPerWithdrawal={amountPerWithdrawal as number}
+                            accounts={accounts}
+                            handleAccountChange={handleAccountChange}
                         />
                         <Button
                             className="btn self-center"
                             onClick={handleDepositModal}
-                            disabled={depositMutation?.isPending}
+                            disabled={depositMutation?.isPending || !amountPerWithdrawal}
                         >
                             Make Deposit
                         </Button>

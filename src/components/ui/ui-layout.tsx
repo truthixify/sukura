@@ -15,6 +15,9 @@ import ErrorImg from '../../../public/Warning.svg'
 import '../../app/wallet.css'
 import { usePathname } from 'next/navigation'
 import '../../app/wallet.css'
+import { BN, ProgramAccount } from '@coral-xyz/anchor'
+import { PublicKey } from '@solana/web3.js'
+import { UseQueryResult } from '@tanstack/react-query'
 
 export function UiLayout({
     children,
@@ -163,6 +166,48 @@ export function formatError(err: any) {
     return err.message.replace(/Error:\s*/g, '')
 }
 
+export function parseSimulationError(logs: string[]) {
+    let program = ''
+    let instruction = ''
+    let reason = ''
+    let details = {}
+
+    for (const log of logs) {
+        if (log.includes('invoke')) {
+            program = log.split(' ')[1] // Extract program ID
+        }
+        if (log.includes('Instruction:')) {
+            instruction = log.split(': ')[1] // Extract instruction name
+        }
+        if (log.includes('Transfer: insufficient lamports')) {
+            reason = 'Insufficient balance'
+            const match = log.match(/(\d+), need (\d+)/)
+            if (match) {
+                details = {
+                    attempted_transfer: `${parseInt(match[2]) / 1e9} SOL`,
+                    available_balance: `${parseInt(match[1]) / 1e9} SOL`,
+                }
+            }
+        }
+    }
+
+    console.log(reason)
+
+    return {
+        error: 'Transaction simulation failed',
+        failing_instruction: 2,
+        program,
+        instruction,
+        reason,
+        details,
+        suggestions: [
+            "Check the sender's balance before attempting the deposit.",
+            'Reduce the deposit amount.',
+            'Ensure the correct account is used for funding.',
+        ],
+    }
+}
+
 export function useTransactionToast() {
     return (signature: string) => {
         toast.custom(
@@ -233,15 +278,36 @@ export function Button({
     )
 }
 
+interface MerkleTree {
+    levels: number
+    filledSubtrees: number[][]
+    roots: number[][]
+    currentRootIndex: BN
+    nextIndex: number
+    zeros: number[][]
+}
+
+interface ProgramAccountData {
+    merkleTree: MerkleTree
+    merkleRoot: number[]
+    commitments: number[][]
+    nullifiersHashes: number[][]
+    amountPerWithdrawal: BN
+    nonce: number
+    vault: PublicKey
+}
+
+type Accounts = UseQueryResult<ProgramAccount<ProgramAccountData>[], Error>
+
 export function RangeSelector({
     amountPerWithdrawal,
-    handleAmountChange,
+    handleAccountChange,
+    accounts,
 }: {
     amountPerWithdrawal: number
-    handleAmountChange: (amountPerWithdrawal: number) => void
+    handleAccountChange: (account: PublicKey, amount: number) => void
+    accounts: Accounts
 }) {
-    const poolAmountList = [0.1, 1, 10, 100]
-
     const handleRangeSelector = (index: number) => {
         const rangeSelector = document.querySelector('.range-selector')
         const prevButtons = document.querySelectorAll('.range-selector button')
@@ -258,24 +324,34 @@ export function RangeSelector({
             }
         }
     }
+    const poolAmountList = [0.1, 1, 10, 100]
 
     return (
         <div className="w-full">
             <h1 className="text-xl mb-4">Amount to Deposit</h1>
             <div className="w-full rounded-full bg-base-200 p-4">
                 <div className="range-selector flex justify-between h-[8px] w-full bg-[#272930] rounded-full">
-                    {poolAmountList.map((amount: number, index: number) => (
-                        <button
-                            key={amount}
-                            aria-label="Radio"
-                            className={`cursor-pointer ${amountPerWithdrawal === amount ? 'range-btn-active' : ''}`}
-                            onClick={() => {
-                                handleAmountChange(amount)
-                                handleRangeSelector(index)
-                            }}
-                            id={`amount-${amount}`}
-                        ></button>
-                    ))}
+                    {accounts.data
+                        ?.sort(
+                            (a, b) =>
+                                a.account.amountPerWithdrawal.toNumber() -
+                                b.account.amountPerWithdrawal.toNumber()
+                        )
+                        .map((account, index) => (
+                            <button
+                                key={account.publicKey.toString()}
+                                aria-label="Radio"
+                                className={`cursor-pointer ${amountPerWithdrawal === account.account.amountPerWithdrawal.toNumber() ? 'range-btn-active' : ''}`}
+                                onClick={() => {
+                                    handleAccountChange(
+                                        account.publicKey,
+                                        account.account.amountPerWithdrawal.toNumber()
+                                    )
+                                    handleRangeSelector(index)
+                                }}
+                                id={`amount-${account.account.amountPerWithdrawal.toNumber()}`}
+                            ></button>
+                        ))}
                 </div>
             </div>
             <div className="w-full flex justify-between rounded-full">

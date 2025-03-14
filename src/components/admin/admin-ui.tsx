@@ -11,21 +11,12 @@ import { BN } from 'bn.js'
 export function SukuraPoolCreate() {
     const { initializePool, accounts } = useSukuraProgram()
     const [amountPerWithdrawal, setAmountPerWithdrawal] = useState<number | null>(null)
-    const [existingPools, setExistingPools] = useState<number[]>([])
+    const [account, setAccount] = useState<PublicKey | null>(null)
 
-    useEffect(() => {
-        if (!accounts.data) return
-
-        const foundPools = [0.1, 1, 10, 100].filter((amount) => {
-            const account = accounts.data.some(
-                (account) =>
-                    account.account.amountPerWithdrawal.toNumber() === amount * LAMPORTS_PER_SOL
-            )
-        })
-
-        setExistingPools(foundPools)
-    }, [accounts.data])
-    const poolExists = amountPerWithdrawal !== null && existingPools.includes(amountPerWithdrawal)
+    const handleAccountChange = (account: PublicKey, amount: number) => {
+        setAmountPerWithdrawal(amount)
+        setAccount(account)
+    }
 
     if (initializePool.isPending) {
         return <Spinner overlay={true} />
@@ -35,13 +26,14 @@ export function SukuraPoolCreate() {
         <div className="card-actions flex-col justify-evenly items-center">
             <RangeSelector
                 amountPerWithdrawal={amountPerWithdrawal as number}
-                handleAmountChange={setAmountPerWithdrawal}
+                handleAccountChange={handleAccountChange}
+                accounts={accounts}
             />
             {initializePool.isPending && <progress className="progress w-1/2"></progress>}
             <Button
                 className="btn btn-small lg:btn-md btn-primary"
                 onClick={() => initializePool.mutateAsync(amountPerWithdrawal)}
-                disabled={initializePool.isPending || !amountPerWithdrawal || poolExists}
+                disabled={initializePool.isPending || !amountPerWithdrawal}
             >
                 Create Pool {initializePool.isPending && '...'}
             </Button>
