@@ -44,4 +44,6 @@ tmp
 # test-ledger
 **/test-ledger
 
+# misc
 /utils
+**/admin

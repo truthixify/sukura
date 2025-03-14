@@ -76,6 +76,18 @@ export function useSukuraProgramAccount({ account }: { account: PublicKey }) {
                 programId
             )
 
+            const checkDbResponse = await fetch('/api/merkleTree', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            
+            if (!checkDbResponse.ok) {
+                throw new Error("Error connecting to DB");
+                
+            }
+
             const txIns = await program.methods
                 .deposit(commitmentArr)
                 .accountsStrict({
@@ -102,20 +114,21 @@ export function useSukuraProgramAccount({ account }: { account: PublicKey }) {
             const signatureArr = await provider.sendAll([{ tx }])
             const signature = signatureArr[0]
 
-            try {
-                await fetch('/api/merkleTree', {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        poolAddress: account.toString(),
-                        commitment,
-                        signature,
-                    }),
-                })
-            } catch (err) {
-                throw err
+            const response = await fetch('/api/merkleTree', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    poolAddress: account.toString(),
+                    commitment,
+                    signature,
+                }),
+            })
+
+            if(!response.ok) {
+                const errorData = await response.json().catch(() => ({})) // Handle potential JSON parsing errors
+                throw new Error(errorData.error || "Merkle tree update failed")
             }
 
             return signature

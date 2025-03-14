@@ -203,7 +203,7 @@ export function parseSimulationError(logs: string[]) {
 export function useTransactionToast() {
     return (signature: string) => {
         toast.custom(
-            <div className="flex items-center w-[400px]  justify-between bg-[#232837] rounded-[16px] p-4 sm:w-[700px] flex-wrap">
+            <div className="flex items-center w-[400px]  justify-between bg-[#232837] rounded-[16px] p-2 sm:w-[600px] flex-wrap sm:flex-no-wrap">
                 <div className="flex items-center gap-4">
                     <Image src={Check} alt="check" />
                     <span className="text-lg text-white">Transaction Successful</span>
@@ -211,7 +211,7 @@ export function useTransactionToast() {
                 <ExplorerLink
                     path={`tx/${signature}`}
                     label={'View Transaction'}
-                    className="btn bg-[#4A5167] text-white self-center order-1 mt-6 basis-full sm:order-0 sm:mt-0"
+                    className="btn bg-[#4A5167] text-xs text-white self-center order-1 mt-6 basis-full sm:order-0 sm:mt-0 sm:basis-0"
                 />
                 <Image
                     className="cursor-pointer order-0 sm:order-1"

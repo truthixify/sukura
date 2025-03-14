@@ -329,7 +329,7 @@ export function SukuraUi() {
 
     return (
         <div className="md:min-w-[700px] w-full absolute top-[10vh]">
-            <div className="tab-header flex justify-between items-center h-12 sm:w-2/5 w-full bg-base-300 rounded-full py-2 px-2">
+            <div className="tab-header flex justify-between items-center h-12 sm:w-2/5 w-full bg-base-300 rounded-full p-1">
                 <button
                     className={`w-1/2 h-10 btn btn-xs hover:bg-primary ${isActiveTabDeposit ? 'bg-primary text-white' : 'bg-base-300 border-none'}`}
                     onClick={() => setIsActiveTabDeposit(true)}
