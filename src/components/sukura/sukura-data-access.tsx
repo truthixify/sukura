@@ -25,6 +25,10 @@ import { signTransactionWithRelayer } from '../../utils/relayer'
 import { getComputeUnitsIx } from '../../utils/compute-unit'
 import { handleAnchorError } from '@/utils/parse-anchor-error'
 
+interface ExtendedError extends Error {
+    logs?: string[];
+}
+
 export function useSukuraProgram() {
     const { connection } = useConnection()
     const { cluster } = useCluster()
@@ -111,7 +115,6 @@ export function useSukuraProgramAccount({ account }: { account: PublicKey }) {
                     }),
                 })
             } catch (err) {
-                console.log(err)
                 throw err
             }
 
@@ -122,10 +125,13 @@ export function useSukuraProgramAccount({ account }: { account: PublicKey }) {
             return accounts.refetch()
         },
         onError: (err) => {
+            const error = err as ExtendedError
+            const logs = error.logs
+            
             errorToast(
                 'Failed to deposit',
-                parseSimulationError(err.logs).reason
-                    ? parseSimulationError(err.logs).reason
+                logs
+                    ? parseSimulationError(logs).reason
                     : formatError(err)
             )
         },
