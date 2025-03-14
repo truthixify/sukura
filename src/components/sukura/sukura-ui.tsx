@@ -63,7 +63,10 @@ export function SukuraUi() {
 
     const handleRecipientAdrressDelete = () => {
         setRecipientAddress(undefined)
-        document.getElementById('address').value = ''
+        const address = document.getElementById('address') as HTMLInputElement
+        if (address) {
+            address.value = ''
+        }
     }
 
     const handleDepositNoteDownload = async () => {

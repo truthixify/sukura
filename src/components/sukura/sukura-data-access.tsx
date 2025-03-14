@@ -26,7 +26,7 @@ import { getComputeUnitsIx } from '../../utils/compute-unit'
 import { handleAnchorError } from '@/utils/parse-anchor-error'
 
 interface ExtendedError extends Error {
-    logs?: string[];
+    logs?: string[]
 }
 
 export function useSukuraProgram() {
@@ -127,12 +127,10 @@ export function useSukuraProgramAccount({ account }: { account: PublicKey }) {
         onError: (err) => {
             const error = err as ExtendedError
             const logs = error.logs
-            
+
             errorToast(
                 'Failed to deposit',
-                logs
-                    ? parseSimulationError(logs).reason
-                    : formatError(err)
+                logs ? parseSimulationError(logs).reason : formatError(err)
             )
         },
     })

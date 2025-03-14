@@ -305,14 +305,17 @@ export function RangeSelector({
         const prevButtons = document.querySelectorAll('.range-selector button')
 
         if (rangeSelector) {
-            rangeSelector.style.setProperty('--onpointrx', `${index * 33.33333333}%`)
+            ;(rangeSelector as HTMLElement).style.setProperty(
+                '--onpointrx',
+                `${index * 33.33333333}%`
+            )
 
             prevButtons.forEach((btn) => {
-                btn.style.backgroundColor = '#FFFFFF'
+                ;(btn as HTMLElement).style.backgroundColor = '#FFFFFF'
             })
 
             for (let i = 0; i < index; i++) {
-                prevButtons[i].style.backgroundColor = '#7AFB96'
+                ;(prevButtons[i] as HTMLElement).style.backgroundColor = '#7AFB96'
             }
         }
     }
