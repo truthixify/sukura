@@ -144,6 +144,10 @@ export type Sukura = {
                     }
                 },
                 {
+                    name: 'relayer'
+                    writable: true
+                },
+                {
                     name: 'systemProgram'
                     address: '11111111111111111111111111111111'
                 },
@@ -186,6 +190,10 @@ export type Sukura = {
                             },
                         ]
                     }
+                },
+                {
+                    name: 'relayer'
+                    writable: true
                 },
                 {
                     name: 'systemProgram'

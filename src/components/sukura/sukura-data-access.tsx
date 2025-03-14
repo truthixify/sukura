@@ -96,26 +96,26 @@ export function useSukuraProgramAccount({ account }: { account: PublicKey }) {
                 instructions: [computeUnitsIx, txIns],
             }).compileToV0Message()
             const tx = new VersionedTransaction(messageV0)
-            let signature
+
+            const signatureArr = await provider.sendAll([{ tx }])
+            const signature = signatureArr[0]
+
             try {
-                const signatureArr = await provider.sendAll([{ tx }])
-                signature = signatureArr[0]
+                await fetch('/api/merkleTree', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        poolAddress: account.toString(),
+                        commitment,
+                        signature,
+                    }),
+                })
             } catch (err) {
+                console.log(err)
                 throw err
             }
-
-            await confirmTransaction(connection, signature)
-
-            await fetch('/api/merkleTree', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    poolAddress: account.toString(),
-                    element: commitment,
-                }),
-            })
 
             return signature
         },
@@ -167,6 +167,7 @@ export function useSukuraProgramAccount({ account }: { account: PublicKey }) {
                     pool: account,
                     vault: vaultAddress,
                     poolSigner: vaultAddress,
+                    relayer: relayerWallet,
                     systemProgram: SystemProgram.programId,
                 })
                 .instruction()

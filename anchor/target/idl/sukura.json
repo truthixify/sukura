@@ -174,6 +174,10 @@
           }
         },
         {
+          "name": "relayer",
+          "writable": true
+        },
+        {
           "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
@@ -232,6 +236,10 @@
               }
             ]
           }
+        },
+        {
+          "name": "relayer",
+          "writable": true
         },
         {
           "name": "system_program",

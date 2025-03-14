@@ -12,7 +12,6 @@ import {
     NoteData,
     solanaAddressToBigInt,
 } from 'utils/utils'
-import toast from 'react-hot-toast'
 import BN from 'bn.js'
 import { IMerkleTree } from '@/app/api/merkleTree/model'
 import MerkleTree from 'fixed-merkle-tree'
@@ -23,11 +22,8 @@ import FileArrowUp from '../../../public/FileArrowUp.svg'
 import Trash from '../../../public/Trash.svg'
 import X from '../../../public/X.svg'
 import CancelBtn from '../../../public/cancel.svg'
-import { fetchDepositEvent } from '@/utils/getDepositTimestamp'
-import { ProgramAccount } from '@coral-xyz/anchor'
 
 export function SukuraUi() {
-    const defaultPublicKey = new PublicKey('11111111111111111111111111111111')
     const { accounts, getProgramAccount } = useSukuraProgram()
 
     const [amountPerWithdrawal, setAmountPerWithdrawal] = useState<number | null>(null)

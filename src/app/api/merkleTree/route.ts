@@ -2,6 +2,9 @@ import FixedMerkleTree from 'fixed-merkle-tree'
 import MerkleTree from './model'
 import { createPoseidonHash } from '../../../../utils/utils'
 import { connectDB } from '@/utils/mongDb'
+import mongoose from 'mongoose'
+import { confirmTransaction } from '@/utils/txConfirmationRetry'
+import { Connection } from '@solana/web3.js'
 
 connectDB().catch((err) => console.log(err))
 
@@ -10,19 +13,19 @@ export async function POST(req: Request) {
         const { poolAddress, levels, amountPerWithdrawal, vaultAddress } = await req.json()
 
         if (!poolAddress) {
-            return Response.json({ error: 'poolAddress is required' }, { status: 400 })
+            return Response.json({ error: 'Pool address is required' }, { status: 400 })
         }
 
         if (!levels) {
-            return Response.json({ error: 'levels is required' }, { status: 400 })
+            return Response.json({ error: 'Levels is required' }, { status: 400 })
         }
 
         if (!amountPerWithdrawal) {
-            return Response.json({ error: 'amountPerWithdrawal is required' }, { status: 400 })
+            return Response.json({ error: 'Pool amount is required' }, { status: 400 })
         }
 
         if (!vaultAddress) {
-            return Response.json({ error: 'vaultAddress is required' }, { status: 400 })
+            return Response.json({ error: 'Vault address is required' }, { status: 400 })
         }
 
         const poseidonHash = await createPoseidonHash()
@@ -42,15 +45,17 @@ export async function POST(req: Request) {
 }
 
 export async function PUT(req: Request) {
+    const session = await mongoose.startSession()
+    session.startTransaction()
     try {
-        const { poolAddress, element } = await req.json()
+        const { poolAddress, commitment, signature } = await req.json()
 
         if (!poolAddress) {
-            return Response.json({ error: 'poolAddress is required' }, { status: 400 })
+            return Response.json({ error: 'Pool address is required' }, { status: 400 })
         }
 
-        if (!element) {
-            return Response.json({ error: 'element is required' }, { status: 400 })
+        if (!commitment) {
+            return Response.json({ error: 'Commitment is required' }, { status: 400 })
         }
 
         let prevTreeData = await MerkleTree.findOne({ poolAddress })
@@ -61,8 +66,7 @@ export async function PUT(req: Request) {
 
         const poseidonHash = await createPoseidonHash()
         const tree = FixedMerkleTree.deserialize(prevTreeData.tree, poseidonHash)
-        tree.insert(element)
-        const index = tree.indexOf(element)
+        tree.insert(commitment)
         const newTreeData = await MerkleTree.findByIdAndUpdate(
             prevTreeData._id,
             { tree: tree.serialize() },
@@ -70,9 +74,17 @@ export async function PUT(req: Request) {
         )
         await newTreeData.save()
 
-        return Response.json({ index, amountPerWithdrawal: newTreeData.amountPerWithdrawal })
+        const connection = new Connection(process.env.NETWORK_URL as string)
+        await confirmTransaction(connection, signature)
+
+        await session.commitTransaction()
+        session.endSession()
+
+        return Response.json({ success: true })
     } catch (err) {
-        console.log(err)
-        return Response.json({ err }, { status: 500 })
+        console.error('Transaction Failed:', err)
+        await session.abortTransaction()
+        session.endSession()
+        return Response.json({ error: 'Transaction failed, rollback triggered' }, { status: 500 })
     }
 }

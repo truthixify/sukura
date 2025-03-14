@@ -16,6 +16,7 @@ pub fn withdraw(
     let vault = &mut ctx.accounts.vault;
     let recipient = &ctx.accounts.recipient;
     let system_program = &ctx.accounts.system_program;
+    let relayer = &ctx.accounts.relayer;
 
     require!(
         !pool.nullifiers_hashes.contains(&nullifier_hash),
@@ -33,7 +34,9 @@ pub fn withdraw(
 
     let bump = pool.nonce;
     let pool_seeds = &[pool.to_account_info().key.as_ref(), &[bump]];
+    let amount = pool.amount_per_withdrawal - fee;
 
+    // send amount recipient
     transfer(
         CpiContext::new(
             system_program.to_account_info(),
@@ -43,7 +46,20 @@ pub fn withdraw(
             },
         )
         .with_signer(&[pool_seeds]),
-        pool.amount_per_withdrawal - fee,
+        amount,
+    )?;
+
+    // send fee to relayer
+    transfer(
+        CpiContext::new(
+            system_program.to_account_info(),
+            Transfer {
+                from: vault.to_account_info(),
+                to: relayer.to_account_info(),
+            },
+        )
+        .with_signer(&[pool_seeds]),
+        fee,
     )?;
 
     pool.nullifiers_hashes.push(nullifier_hash);
@@ -51,7 +67,7 @@ pub fn withdraw(
     emit!(WithdrawEvent {
         recipient: recipient.key(),
         nullifier_hash,
-        amount: pool.amount_per_withdrawal - fee,
+        amount,
     });
 
     msg!(
@@ -83,5 +99,8 @@ pub struct Withdraw<'info> {
         bump = pool.nonce,
     )]
     pub pool_signer: UncheckedAccount<'info>,
+    /// CHECK: The relayer account paying gas fee.
+    #[account(mut)]
+    pub relayer: AccountInfo<'info>, 
     pub system_program: Program<'info, System>,
 }
