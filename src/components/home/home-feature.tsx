@@ -9,10 +9,12 @@ export default function HomeFeature() {
             <AppHero
                 title="Untraceable Transactions, Absolute Privacy"
                 subtitle={
-                    'Built for those who value financial freedom, Sukura obfuscates transaction trails, making it impossible to trace your funds. Stay anonymous, stay secure, stay ahead'
+                    ''
                 }
             ></AppHero>
             <Home />
         </div>
     )
 }
+
+//Built for those who value financial freedom, Sukura obfuscates transaction trails, making it impossible to trace your funds. Stay anonymous, stay secure, stay ahead
