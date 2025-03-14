@@ -11,7 +11,6 @@ import {
 } from '@solana/web3.js'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
-import toast from 'react-hot-toast'
 import { useCluster } from '../cluster/cluster-data-access'
 import { useAnchorProvider } from '../solana/solana-provider'
 import {
@@ -24,7 +23,6 @@ import BN from 'bn.js'
 import { bigintToUint8Array, parseProofToBytesArray, parseToBytesArray } from '../../../utils/utils'
 import { signTransactinWithRelayer } from '../../../utils/relayer'
 import { getComputeUnitsIx } from '../../utils/computeUnit'
-import { confirmTransaction } from '@/utils/txConfirmationRetry'
 import { handleAnchorError } from '@/utils/handleAnchorError'
 
 export function useSukuraProgram() {

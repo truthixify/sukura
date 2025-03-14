@@ -1,7 +1,7 @@
 'use client'
 
 import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { ExplorerLink } from '../cluster/cluster-ui'
 import { Button, ellipsify, RangeSelector, Spinner } from '../ui/ui-layout'
 import { useSukuraProgram, useSukuraProgramAccount } from './admin-data-access'

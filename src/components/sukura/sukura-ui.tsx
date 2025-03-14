@@ -1,7 +1,7 @@
 'use client'
 
 import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { Button, formatError, RangeSelector, Spinner, useErrorToast } from '../ui/ui-layout'
 import { useSukuraProgram, useSukuraProgramAccount } from './sukura-data-access'
 import {
