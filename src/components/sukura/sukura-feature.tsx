@@ -7,17 +7,14 @@ import { SukuraUi } from './sukura-ui'
 export default function SukuraFeature() {
     const { publicKey } = useWallet()
 
-    return publicKey ? (
-        <div className="w-full h-full flex justify-center items-center relative">
-            <SukuraUi />
-        </div>
-    ) : (
-        <div className="max-w-4xl mx-auto">
-            <div className="hero py-[64px]">
-                <div className="hero-content text-center">
-                    <WalletButton />
-                </div>
+    return (
+        <>
+            <div className="w-full h-full flex justify-center items-center relative">
+                <SukuraUi />
             </div>
-        </div>
+            {!publicKey && <div className="absolute top-0 left-0 w-screen h-screen flex flex-col items-center justify-center backdrop-blur-[10px] z-50">
+            <WalletButton />
+        </div>}
+        </>
     )
 }

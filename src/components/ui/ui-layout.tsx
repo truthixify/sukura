@@ -38,10 +38,10 @@ export function UiLayout({ children }: { children: ReactNode }) {
                     </div>
                 )}
             </div>
-            <div className="flex-grow mx-4 lg:mx-auto">
+            <div className='flex-grow mx-4 lg:mx-auto'>
                 <Suspense
                     fallback={
-                        <div className="text-center flex items-center justify-center">
+                        <div className='text-center flex items-center justify-center'>
                             <Spinner text="Loading mixer" overlay={true} />
                         </div>
                     }

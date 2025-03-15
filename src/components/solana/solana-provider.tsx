@@ -10,7 +10,7 @@ import {
     ConnectionProvider,
     WalletProvider,
 } from '@solana/wallet-adapter-react'
-import { WalletModalProvider, WalletMultiButton } from '@solana/wallet-adapter-react-ui'
+import { WalletModalProvider } from '@solana/wallet-adapter-react-ui'
 import { ReactNode, useCallback, useMemo } from 'react'
 import { useCluster } from '../cluster/cluster-data-access'
 
