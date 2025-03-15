@@ -5,8 +5,7 @@ import { connectDB } from '@/lib/mongo-db'
 import mongoose from 'mongoose'
 import { confirmTransaction } from '@/utils/tx-confirmation-retry'
 import { Connection } from '@solana/web3.js'
-
-// connectDB().catch((err) => console.log(err))
+import Commitment from '../commitment/model'
 
 export async function GET() {
     try {
@@ -81,7 +80,7 @@ export async function PUT(req: Request) {
         session.startTransaction()
 
         try {
-            const { poolAddress, commitment, signature } = await req.json()
+            const { poolAddress, commitment, signature, timestamp } = await req.json()
 
             if (!poolAddress) {
                 return Response.json({ error: 'Pool address is required' }, { status: 400 })
@@ -106,6 +105,8 @@ export async function PUT(req: Request) {
                 { tree: tree.serialize() },
                 { new: true, session }
             )
+            const newCommitment = new Commitment({ commitment })
+            await newCommitment.save({ session })
 
             if (!newTreeData) {
                 throw new Error('Failed to update Merkle tree')

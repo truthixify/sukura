@@ -31,6 +31,7 @@
     "circomlibjs": "^0.1.7",
     "crypto-js": "^4.2.0",
     "daisyui": "^4.12.10",
+    "date-fns": "^4.1.0",
     "dotenv": "^16.4.7",
     "ffjavascript": "^0.3.1",
     "fixed-merkle-tree": "^0.7.3",

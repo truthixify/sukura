@@ -22,6 +22,7 @@ import FileArrowUp from '../../../public/FileArrowUp.svg'
 import Trash from '../../../public/Trash.svg'
 import X from '../../../public/X.svg'
 import CancelBtn from '../../../public/cancel.svg'
+import { formatDistanceToNow } from 'date-fns'
 
 export function SukuraUi() {
     const { accounts, getProgramAccount } = useSukuraProgram()
@@ -46,6 +47,7 @@ export function SukuraUi() {
     const [vaultAddress, setVaultAddress] = useState<PublicKey | null>(null)
     const [account, setAccount] = useState<PublicKey | null>(null)
     const [processUploadedNote, setProcessUploadedNote] = useState(false)
+    const [elapsedTime, setElapsedTime] = useState<string>('')
 
     const { accountQuery, depositMutation, withdrawMutation } = useSukuraProgramAccount({
         account: account as PublicKey,
@@ -167,18 +169,23 @@ export function SukuraUi() {
             try {
                 const parsedData = await handleNoteUpload(file)
                 parsedData
-                setWithdrawalNoteData(parsedData)
+                const commitmentResponse = await fetch(`/api/commitment/${parsedData.commitment}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                })
+                const commitmentData = await commitmentResponse.json()
+                if (commitmentData.timestamp) {
+                    setElapsedTime(formatDistanceToNow(new Date(commitmentData.timestamp), { addSuffix: true }))
+                } else {
+                    setElapsedTime('')
+                }
 
+                setWithdrawalNoteData(parsedData)
                 setIsNoteUploaded(true)
                 setProcessUploadedNote(true)
                 setTimeout(() => setProcessUploadedNote(false), 2000)
-
-                // try {
-                //     const log = await fetchDepositEvent(parsedData.commitment, programId)
-                //     console.log(log)
-                // } catch (err) {
-                //     console.log(err)
-                // }
             } catch (err) {
                 errorToast('Invalid file format', 'Please upload a valid JSON file')
             }
@@ -236,13 +243,13 @@ export function SukuraUi() {
         setAccount(account)
 
         try {
-            const response = await fetch(`/api/merkleTree/${account.toString()}`, {
+            const merkleTreeResponse = await fetch(`/api/merkleTree/${account.toString()}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
                 },
             })
-            const treeData: IMerkleTree = await response.json()
+            const treeData: IMerkleTree = await merkleTreeResponse.json()
             const { tree, vaultAddress } = treeData
             const poseidonHash = await createPoseidonHash()
             const deTree = MerkleTree.deserialize(tree, poseidonHash)
@@ -433,7 +440,7 @@ export function SukuraUi() {
                                     onDrop={handleDrop}
                                     onClick={() => document.getElementById('file')?.click()}
                                 >
-                                    <Image src={FileArrowUp} alt="drag adn drop arrow" />
+                                    <Image src={FileArrowUp} alt="d & d arrow" />
                                     <p className="my-2 text-sm">
                                         drag and drop or select a note file you have backed up
                                     </p>
@@ -493,7 +500,7 @@ export function SukuraUi() {
                                         />
                                     </div>
                                 </div>
-                                <div className="w-full flex flex-col gap-2 mt-4 px-6">
+                                <div className="w-full flex flex-col gap-2 mt-4 px-6 text-xs sm:text-lg">
                                     <div className="w-full flex justify-between">
                                         <span className="text-gray-400">Amount</span>
                                         <span className="font-semibold">
@@ -502,11 +509,11 @@ export function SukuraUi() {
                                     </div>
 
                                     {/* additional deposit details */}
-                                    {/* <div className="w-full flex justify-between">
-                                        <span className="text-gray-400">Elapsed time</span>
-                                        <span className="font-semibold">{1} hour</span>
-                                    </div>
                                     <div className="w-full flex justify-between">
+                                        <span className="text-gray-400">Elapsed time</span>
+                                        <span className="font-semibold">{elapsedTime ? elapsedTime : 'None'}</span>
+                                    </div>
+                                    {/*<div className="w-full flex justify-between">
                                         <span className="text-gray-400">Subsequent deposits</span>
                                         <span className="font-semibold">None</span>
                                     </div> */}
