@@ -209,10 +209,6 @@
 </g>
 <rect x="754" y="376" width="1500" height="1500" rx="750" fill="url(#paint4_radial_3_2)"/>
 <rect x="-90" y="-1015" width="1500" height="1500" rx="750" fill="url(#paint5_radial_3_2)"/>
-<path d="M0 557.5L738 557.5" stroke="url(#paint6_linear_3_2)"/>
-<path d="M774 557.5L1512 557.5" stroke="url(#paint7_linear_3_2)"/>
-<path d="M1456 59V306.615C1456 351.713 1425.81 391.23 1382.31 403.093L816 557.5" stroke="url(#paint8_linear_3_2)"/>
-<path d="M50.5 59V306.615C50.5 351.713 80.6854 391.23 124.195 403.093L690.5 557.5" stroke="url(#paint9_linear_3_2)"/>
 </g>
 <defs>
 <pattern id="pattern0_3_2" patternContentUnits="objectBoundingBox" width="0.644836" height="1">
@@ -247,22 +243,6 @@
 <stop offset="0.7" stop-color="#90ACFF" stop-opacity="0"/>
 <stop offset="1" stop-color="#90ACFF" stop-opacity="0"/>
 </radialGradient>
-<linearGradient id="paint6_linear_3_2" x1="-61" y1="556.487" x2="658.5" y2="556.487" gradientUnits="userSpaceOnUse">
-<stop/>
-<stop offset="1" stop-color="white"/>
-</linearGradient>
-<linearGradient id="paint7_linear_3_2" x1="713" y1="556.487" x2="1432.5" y2="556.487" gradientUnits="userSpaceOnUse">
-<stop stop-color="white"/>
-<stop offset="1"/>
-</linearGradient>
-<linearGradient id="paint8_linear_3_2" x1="1429.52" y1="37.3083" x2="847.409" y2="609.899" gradientUnits="userSpaceOnUse">
-<stop/>
-<stop offset="1" stop-color="white"/>
-</linearGradient>
-<linearGradient id="paint9_linear_3_2" x1="76.9773" y1="37.3083" x2="659.091" y2="609.899" gradientUnits="userSpaceOnUse">
-<stop/>
-<stop offset="1" stop-color="white"/>
-</linearGradient>
 <clipPath id="clip0_3_2">
 <rect width="1512" height="982" fill="white"/>
 </clipPath>

@@ -5,7 +5,7 @@ import { AppHero } from '../ui/ui-layout'
 
 export default function HomeFeature() {
     return (
-        <div className="relative h-full">
+        <div className="h-full">
             <AppHero
                 title="Untraceable Transactions, Absolute Privacy"
                 subtitle={

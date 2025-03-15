@@ -1,14 +1,21 @@
 'use client'
 
+import Image from 'next/image'
 import { Button, useTransactionToast } from '../ui/ui-layout'
+import Arc from '../../../public/whole-arc.svg'
 
 export function Home() {
     const txs = useTransactionToast()
     return (
-        <div className="flex items-center justify-center w-full absolute top-[50%] transform-transition sm:-translate-y-3/4 lg:-translate-y-3/4">
-            <Button>
-                <a href="/sukura">Go to Mixer</a>
-            </Button>
+        <div className="flex items-center justify-center w-full h-1/2 absolute top-0 left-0">
+            <Image
+                className='absolute bottom-0'
+                    src={Arc}
+                    alt='arc'
+            />
+            <a href="/sukura" className='absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2'>
+                <Button>Go to Mixer</Button>
+            </a>
         </div>
     )
 }
