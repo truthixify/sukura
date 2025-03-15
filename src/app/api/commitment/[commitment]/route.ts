@@ -11,7 +11,7 @@ export async function GET(req: Request, { params }: { params: { commitment: stri
             return Response.json({ error: 'Commitment is required' }, { status: 400 })
         }
 
-        const commitmentData = await Commitment.findOne({ commitment }).lean()
+        const commitmentData = await Commitment.findOne({ commitment })
 
         if (!commitmentData) {
             return Response.json({ error: 'Commitment not found' }, { status: 404 })

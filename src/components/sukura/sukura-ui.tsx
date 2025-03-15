@@ -549,8 +549,8 @@ export function SukuraUi() {
                                     />
                                 </div>
                                 {recipientAddress && (
-                                    <>
-                                        <div className="w-full flex justify-between px-6">
+                                    <div className='w-full flex flex-col gap-2 px-6 mt-4 text-xs sm:text-lg'>
+                                        <div className="w-full flex justify-between">
                                             <span className="text-gray-400">Fee</span>
                                             <span className="font-semibold">
                                                 {(
@@ -560,7 +560,7 @@ export function SukuraUi() {
                                                 SOL
                                             </span>
                                         </div>
-                                        <div className="w-full flex justify-between px-6">
+                                        <div className="w-full flex justify-between">
                                             <span className="text-gray-400">
                                                 Recipient receives
                                             </span>
@@ -572,7 +572,7 @@ export function SukuraUi() {
                                                 SOL
                                             </span>
                                         </div>
-                                    </>
+                                    </div>
                                 )}
                             </div>
                             <Button
