@@ -211,7 +211,7 @@ export function useTransactionToast() {
                 <ExplorerLink
                     path={`tx/${signature}`}
                     label={'View Transaction'}
-                    className="btn bg-[#4A5167] text-xs text-white self-center order-1 mt-6 basis-full sm:order-0 sm:mt-0 sm:basis-0"
+                    className="btn bg-[#4A5167] text-xs text-white self-center order-1 mt-6 basis-full sm:order-0 sm:mt-0 sm:basis-1/2"
                 />
                 <Image
                     className="cursor-pointer order-0 sm:order-1"
