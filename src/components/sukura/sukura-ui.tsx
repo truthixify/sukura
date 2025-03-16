@@ -23,6 +23,7 @@ import Trash from '../../../public/Trash.svg'
 import X from '../../../public/X.svg'
 import CancelBtn from '../../../public/cancel.svg'
 import { formatDistanceToNow } from 'date-fns'
+import { useWallet } from '@solana/wallet-adapter-react'
 
 export function SukuraUi() {
     const { accounts, getProgramAccount } = useSukuraProgram()
@@ -53,6 +54,8 @@ export function SukuraUi() {
         account: account as PublicKey,
     })
 
+    const { publicKey } = useWallet()
+
     const withdrawModalRef = useRef<HTMLDialogElement | null>(null)
     const depositModalRef = useRef<HTMLDialogElement | null>(null)
 
@@ -72,6 +75,11 @@ export function SukuraUi() {
     }
 
     const handleDepositNoteDownload = async () => {
+        if (!publicKey) {
+            errorToast("Wallet Not Connected", "Please connect your wallet to continue.")
+            return
+        }
+
         const deposit = await generateDeposit()
         const commitment = deposit.commitment.toString()
         const nullifier = deposit.nullifier.toString()
@@ -221,6 +229,11 @@ export function SukuraUi() {
     }
 
     const handleProofGen = async () => {
+        if (!publicKey) {
+            errorToast("Wallet Not Connected", "Please connect your wallet to continue.")
+            return
+        }
+        
         setIsGenProof(true)
         if (!withdrawalNoteData) {
             errorToast('Invalid note file', 'Please upload a valid note file first')
