@@ -76,7 +76,7 @@ export function SukuraUi() {
 
     const handleDepositNoteDownload = async () => {
         if (!publicKey) {
-            errorToast("Wallet Not Connected", "Please connect your wallet to continue.")
+            errorToast("Wallet not connected", "Please connect your wallet to continue.")
             return
         }
 
@@ -230,10 +230,10 @@ export function SukuraUi() {
 
     const handleProofGen = async () => {
         if (!publicKey) {
-            errorToast("Wallet Not Connected", "Please connect your wallet to continue.")
+            errorToast("Wallet not connected", "Please connect your wallet to continue.")
             return
         }
-        
+
         setIsGenProof(true)
         if (!withdrawalNoteData) {
             errorToast('Invalid note file', 'Please upload a valid note file first')
