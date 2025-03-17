@@ -24,7 +24,7 @@ export function UiLayout({ children }: { children: ReactNode }) {
 
     return (
         <div className="h-full flex flex-col">
-            <div className="navbar space-y-2 md:space-y-0 sm:px-12 sm:py-12 px-3 py-3">
+            <div className="navbar space-y-2 md:space-y-0 sm:px-12 sm:py-12 px-3 py-6">
                 <div className="flex-1">
                     <Link className="normal-case text-3xl flex items-center gap-4" href="/">
                         <Image src={SukuraLogo} alt="Sukura Logo" />
