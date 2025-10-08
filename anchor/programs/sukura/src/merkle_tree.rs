@@ -60,7 +60,6 @@ impl MerkleTreeWithHistory {
         for i in 0..levels as usize {
             filled_subtrees[i] = zeros[levels as usize];
         }
-        println!("filled: {:?}", filled_subtrees);
 
         let mut roots = Vec::with_capacity(ROOT_HISTORY_SIZE);
         roots.push(zeros[levels as usize]);
